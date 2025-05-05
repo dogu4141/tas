@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Hasar Detayı{% endblock %}
+
+{% block page_title %}Hasar Detayı{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('damages.index') }}" class="btn btn-outline-secondary me-2">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+    {% if current_user.role in ['admin', 'moderator'] %}
+    <a href="{{ url_for('damages.edit_damage', damage_id=damage.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-pencil"></i> Düzenle
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Hasar Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <h6 class="text-muted mb-2">Araç Bilgileri</h6>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 30%">Şasi No</th>
+                                <td>{{ damage.vehicle.chassis_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Marka / Model</th>
+                                <td>{{ damage.vehicle.brand }} {{ damage.vehicle.model }}</td>
+                            </tr>
+                            <tr>
+                                <th>Plaka</th>
+                                <td>{{ damage.vehicle.license_plate or "-" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-12 mb-4">
+                        <h6 class="text-muted mb-2">Hasar Detayları</h6>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 30%">Hasar Tipi</th>
+                                <td>{{ damage.damage_type.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Hasar Grubu</th>
+                                <td>
+                                    {% if damage.group %}
+                                        {% set group_display = {
+                                            '35': '1 - ANTEN/ANTEN ÜNİTESİ',
+                                            '36': '2 - AKÜ',
+                                            '37': '3 - TAMPON/KAPAK/DIŞ, ÖN',
+                                            '38': '4 - TAMPON/KAPAK/DIŞ, ARKA',
+                                            '39': '5 - TAMPON KORUMASI/ŞERİDİ, ÖN',
+                                            '40': '6 - TAMPON KORUMASI/ŞERİDİ, ARKA',
+                                            '41': '7 - BAGAJ KAPISI – SAĞ',
+                                            '42': '8 - BAGAJ KAPISI – SOL',
+                                            '43': '9 - BAGAJ KAPISI (SÜRGÜLÜ) SAĞ/SOL',
+                                            '44': '10 - KAPI, SOL ÖN',
+                                            '45': '11 - KAPI, SOL ARKA',
+                                            '46': '12 - KAPI, SAĞ ÖN',
+                                            '47': '13 - KAPI, SAĞ ARKA',
+                                            '48': '14 - ÇAMURLUK, SOL ÖN',
+                                            '49': '15 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SOL',
+                                            '50': '16 - ÇAMURLUK, SAĞ ÖN',
+                                            '51': '17 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SAĞ',
+                                            '52': '18 - ÖN ZEMİN PASPASLARI',
+                                            '53': '19 - ARKA ZEMİN PASPASLARI',
+                                            '54': '20 - ÖN CAM',
+                                            '55': '21 - ARKA CAM',
+                                            '56': '22 - ÖN IZGARA'
+                                        } %}
+                                        {{ group_display.get(damage.group, damage.group) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Hasar Tanımı</th>
+                                <td>
+                                    {% if damage.damage_description %}
+                                        {% set description_display = {
+                                            '760': '1 - BÜKÜLME',
+                                            '761': '2 - ÇALIŞAMAZ DURUMDA',
+                                            '762': '3 - KESİK',
+                                            '763': '4 - EZİK - BOYA VEYA KROM HASARLI',
+                                            '764': '5 - ÇENTİKLİ - CAM VEYA PANEL KENARI İÇİN DEĞİL',
+                                            '765': '6 - ÇATLAK - CAM İÇİN DEĞİL',
+                                            '766': '7 - OYULMUŞ',
+                                            '767': '8 - EKSİK',
+                                            '768': '9 - AŞINMIŞ'
+                                        } %}
+                                        {{ description_display.get(damage.damage_description, damage.damage_description) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Hasar Seviyesi</th>
+                                <td>
+                                    {% if damage.level %}
+                                        {% set level_display = {
+                                            '1': '1 - 1" uzunluğa / çapa kadar olan hasarlar - 2,5 cm\'den az',
+                                            '2': '2 - 1"den 3"e kadar uzunluktaki / çaplı hasarlar - 2,5 cm\'den 7,5 cm\'ye kadar',
+                                            '3': '3 - 3"den 6"ya kadar uzunluktaki / çaplı hasarlar - 7,5 cm\'den 15 cm\'ye kadar',
+                                            '4': '4 - 6"den 12"ye kadar uzunluktaki / çaptaki hasarlar – 15 cm\'den 30 cm\'ye kadar',
+                                            '5': '5 - 12" uzunluğundan / çapından büyük hasarlar – 30 cm ve üzeri',
+                                            '6': '6 - Eksik/Büyük Hasar'
+                                        } %}
+                                        {{ level_display.get(damage.level, damage.level) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Açıklama</th>
+                                <td>{{ damage.description }}</td>
+                            </tr>
+                            <tr>
+                                <th>Şiddet</th>
+                                <td>
+                                    {% if damage.severity == 'minor' %}
+                                        <span class="badge bg-success">Hafif</span>
+                                    {% elif damage.severity == 'moderate' %}
+                                        <span class="badge bg-warning text-dark">Orta</span>
+                                    {% elif damage.severity == 'severe' %}
+                                        <span class="badge bg-danger">Ağır</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Durum</th>
+                                <td>
+                                    {% if damage.status == 'pending' %}
+                                        <span class="badge badge-pending">Beklemede</span>
+                                    {% elif damage.status == 'in_progress' %}
+                                        <span class="badge badge-in-progress">İşlemde</span>
+                                    {% elif damage.status == 'repaired' %}
+                                        <span class="badge badge-repaired">Onarıldı</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Kayıt Tarihi</th>
+                                <td>{{ damage.recorded_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Kaydeden</th>
+                                <td>{{ damage.recorder.username if damage.recorder else "-" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    {% if current_user.role in ['admin', 'moderator'] %}
+                    <div class="col-md-12 mb-3">
+                        <h6 class="text-muted mb-2">Durum Güncelleme</h6>
+                        <form method="POST" action="{{ url_for('damages.update_status', damage_id=damage.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="input-group">
+                                <select name="status" class="form-select">
+                                    <option value="pending" {% if damage.status == 'pending' %}selected{% endif %}>Beklemede</option>
+                                    <option value="in_progress" {% if damage.status == 'in_progress' %}selected{% endif %}>İşlemde</option>
+                                    <option value="repaired" {% if damage.status == 'repaired' %}selected{% endif %}>Onarıldı</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Güncelle</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Hasar Konumu</h5>
+            </div>
+            <div class="card-body">
+                <div class="car-image-container">
+                    <img src="{{ url_for('static', filename='img/car-diagram.svg') }}" class="car-image">
+                    <div class="marker-container" id="markerContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const markerContainer = document.getElementById('markerContainer');
+        
+        // Show damage markers if coordinates are available
+        {% if damage.location_x and damage.location_y %}
+            try {
+                const xCoords = JSON.parse('{{ damage.location_x|safe }}');
+                const yCoords = JSON.parse('{{ damage.location_y|safe }}');
+                
+                if (Array.isArray(xCoords) && Array.isArray(yCoords) && xCoords.length === yCoords.length) {
+                    for (let i = 0; i < xCoords.length; i++) {
+                        const marker = document.createElement('div');
+                        marker.className = 'marker';
+                        marker.style.left = `${xCoords[i]}%`;
+                        marker.style.top = `${yCoords[i]}%`;
+                        
+                        const markerNumber = document.createElement('span');
+                        markerNumber.className = 'marker-number';
+                        markerNumber.textContent = i + 1;
+                        
+                        marker.appendChild(markerNumber);
+                        markerContainer.appendChild(marker);
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing damage coordinates:', e);
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

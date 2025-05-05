@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - İrsaliye Detayı{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/damage-system.css') }}">
+{% endblock %}
+
+{% block page_title %}İrsaliye #{{ delivery.delivery_number }}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('deliveries.index') }}" class="btn btn-outline-secondary me-2">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+    <a href="{{ url_for('deliveries.print_delivery', delivery_id=delivery.id) }}" class="btn btn-outline-primary me-2">
+        <i class="bi bi-printer"></i> Yazdır
+    </a>
+    {% if current_user.role in ['admin', 'moderator'] %}
+    <a href="{{ url_for('deliveries.edit_delivery', delivery_id=delivery.id) }}" class="btn btn-primary">
+        <i class="bi bi-pencil"></i> Düzenle
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="delivery-section">
+    <div class="delivery-header">
+        <div class="delivery-details">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>İrsaliye No:</strong> {{ delivery.delivery_number }}</p>
+                    <p class="mb-1"><strong>Tarih:</strong> {{ delivery.issue_date.strftime('%d.%m.%Y') }}</p>
+                    <p class="mb-1"><strong>Saat:</strong> {{ delivery.issue_time.strftime('%H:%M') }}</p>
+                    <p class="mb-0"><strong>Durum:</strong> 
+                        <span class="badge {{ 'bg-success' if delivery.status == 'completed' else 'bg-info' }}">
+                            {{ {'active': 'Aktif', 'completed': 'Tamamlandı', 'cancelled': 'İptal'}.get(delivery.status, 'Aktif') }}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Şoför:</strong> {{ delivery.driver.full_name() if delivery.driver else 'Belirtilmemiş' }}</p>
+                    <p class="mb-1"><strong>Yükleme Sahası:</strong> {{ delivery.loading_yard or 'Belirtilmemiş' }}</p>
+                    <p class="mb-0"><strong>Oluşturulma:</strong> {{ delivery.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="delivery-section">
+    <h4>Araç Listesi</h4>
+    
+    <div class="card mb-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table delivery-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Şasi No</th>
+                            <th>Marka</th>
+                            <th>Model</th>
+                            <th>Eklenme Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if delivery.delivery_items %}
+                            {% for item in delivery.delivery_items %}
+                                <tr class="delivery-item">
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ item.chassis_number }}</td>
+                                    <td>{{ item.brand }}</td>
+                                    <td>{{ item.model }}</td>
+                                    <td>{{ item.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">Henüz araç eklenmemiş.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if delivery.notes %}
+<div class="delivery-section">
+    <h4>Notlar</h4>
+    <div class="card">
+        <div class="card-body">
+            {{ delivery.notes|nl2br }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="delivery-summary">
+    <div class="row">
+        <div class="col-md-6">
+            <p class="mb-1"><strong>Toplam Araç:</strong> {{ delivery.delivery_items|length }}</p>
+            <p class="mb-0"><strong>Son Güncelleme:</strong> {{ delivery.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        </div>
+        <div class="col-md-6 text-end">
+            {% if current_user.role in ['admin', 'moderator'] and delivery.status != 'cancelled' %}
+                <form action="{{ url_for('deliveries.delete_delivery', delivery_id=delivery.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu irsaliyeyi silmek istediğinizden emin misiniz?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> İrsaliyeyi Sil
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/damage-system.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Taşdanlar Otomotiv - Giriş</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Ana CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles-new.css') }}"
+
+{% block title %}Taşdanlar Otomotiv - Giriş{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #0077B6, #00B4D8);
+        --login-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        --form-bg: #fff;
+        --form-border-radius: 12px;
+        --input-bg: #f8f9fa;
+        --input-border: #ced4da;
+        --input-focus-border: #0077B6;
+        --input-focus-shadow: 0 0 0 0.25rem rgba(0, 119, 182, 0.25);
+        --button-gradient: linear-gradient(135deg, #0077B6, #00B4D8);
+        --button-hover-gradient: linear-gradient(135deg, #005f92, #0098b8);
+    }
+    
+    .login-page-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-gradient);
+        padding: 20px;
+    }
+    
+    .login-card {
+        width: 100%;
+        max-width: 450px;
+        background-color: var(--form-bg);
+        border-radius: var(--form-border-radius);
+        box-shadow: var(--login-shadow);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .login-brand {
+        padding: 30px 20px;
+        text-align: center;
+        background-color: rgba(0, 119, 182, 0.05);
+        border-bottom: 1px solid rgba(0, 119, 182, 0.1);
+    }
+    
+    .login-brand-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+    }
+    
+    .login-brand-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0077B6;
+        margin-bottom: 5px;
+    }
+    
+    .login-brand-subtitle {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .login-form-container {
+        padding: 30px;
+    }
+    
+    .login-form-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #212529;
+    }
+    
+    .form-floating {
+        margin-bottom: 20px;
+    }
+    
+    .form-floating input {
+        border-radius: 8px;
+        padding: 15px 15px 15px 15px;
+        height: calc(3.5rem + 2px);
+        font-size: 1rem;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+    }
+    
+    .form-floating input:focus {
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
+    }
+    
+    .form-floating label {
+        padding: 1rem 1rem;
+    }
+    
+    .input-group {
+        margin-bottom: 20px;
+    }
+    
+    .input-group .form-control {
+        border-radius: 8px 0 0 8px;
+        padding: 15px 15px 15px 15px;
+        height: calc(3.5rem + 2px);
+        font-size: 1rem;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+    }
+    
+    .input-group .btn {
+        border-radius: 0 8px 8px 0;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+    }
+    
+    .login-button {
+        background: var(--button-gradient);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 12px 15px;
+        border-radius: 8px;
+        width: 100%;
+        margin-top: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+    
+    .login-button:hover {
+        background: var(--button-hover-gradient);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 119, 182, 0.3);
+    }
+    
+    .login-footer {
+        text-align: center;
+        padding: 15px 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .login-help-text {
+        margin-top: 15px;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .login-decoration {
+        position: absolute;
+        width: 100%;
+        height: 200px;
+        z-index: 0;
+        overflow: hidden;
+    }
+    
+    .login-decoration::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(135deg, rgba(0, 183, 255, 0.2), rgba(0, 119, 182, 0.1));
+        border-radius: 50%;
+        top: -150px;
+        right: -150px;
+    }
+    
+    .login-decoration::after {
+        content: '';
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(135deg, rgba(0, 183, 255, 0.1), rgba(0, 119, 182, 0.05));
+        border-radius: 50%;
+        top: -100px;
+        left: -100px;
+    }
+
+    /* Sample accounts section */
+    .sample-accounts {
+        margin-top: 20px;
+        background-color: rgba(0, 119, 182, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+    }
+    
+    .sample-accounts h6 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0077B6;
+        margin-bottom: 10px;
+    }
+    
+    .sample-accounts-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.85rem;
+    }
+    
+    .sample-accounts-list li {
+        margin-bottom: 5px;
+        padding: 5px 0;
+        border-bottom: 1px dashed rgba(0, 119, 182, 0.1);
+    }
+    
+    .sample-accounts-list strong {
+        font-weight: 600;
+        color: #0077B6;
+    }
+    
+    .sample-accounts-list .badge {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        border-radius: 4px;
+    }
+    
+    .badge-admin {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .badge-moderator {
+        background-color: #fd7e14;
+        color: white;
+    }
+    
+    .badge-driver {
+        background-color: #20c997;
+        color: white;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .login-form-container {
+            padding: 20px;
+        }
+        
+        .login-brand {
+            padding: 20px 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block auth_content %}
+<div class="login-page-container">
+    <div class="login-card">
+        <div class="login-decoration"></div>
+        
+        <div class="login-brand">
+            <div class="login-brand-icon">
+                <i class="bi bi-truck text-primary" style="font-size: 2.5rem;"></i>
+            </div>
+            <h1 class="login-brand-title">Taşdanlar Otomotiv</h1>
+            <p class="login-brand-subtitle">Lojistik Yönetim Sistemi</p>
+        </div>
+        
+        <div class="login-form-container">
+            <h2 class="login-form-title">Sisteme Giriş</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mb-4" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-floating mb-3">
+                    {{ form.username(class="form-control", id="floatingUsername", placeholder="Kullanıcı Adı") }}
+                    <label for="floatingUsername">Kullanıcı Adı</label>
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block mt-1">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="input-group">
+                    <div class="form-floating">
+                        {{ form.password(class="form-control", id="floatingPassword", placeholder="Şifre") }}
+                        <label for="floatingPassword">Şifre</label>
+                    </div>
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="floatingPassword" style="width: 50px;">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+                {% if form.password.errors %}
+                    <div class="invalid-feedback d-block mt-1 mb-3">
+                        {% for error in form.password.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {{ form.submit(class="login-button", value="Giriş Yap") }}
+                
+                <div class="login-help-text">
+                    <p>Giriş yaparken sorun yaşıyorsanız, lütfen sistem yöneticinizle iletişime geçin.</p>
+                </div>
+                
+                <!-- Sample accounts section for demo purposes -->
+                <div class="sample-accounts">
+                    <h6>Demo Hesapları</h6>
+                    <ul class="sample-accounts-list">
+                        <li>
+                            <strong>admin</strong> / password123 
+                            <span class="badge badge-admin">Admin</span>
+                        </li>
+                        <li>
+                            <strong>moderator1</strong> / password123 
+                            <span class="badge badge-moderator">Moderatör</span>
+                        </li>
+                        <li>
+                            <strong>driver1</strong> / password123 
+                            <span class="badge badge-driver">Şoför</span>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        
+        <div class="login-footer">
+            <p>© {{ now.year }} Taşdanlar Otomotiv. Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        const togglePasswordButton = document.querySelector('.toggle-password');
+        if (togglePasswordButton) {
+            togglePasswordButton.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                
+                if (passwordInput) {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Toggle icon
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        if (type === 'password') {
+                            icon.classList.remove('bi-eye-slash');
+                            icon.classList.add('bi-eye');
+                        } else {
+                            icon.classList.remove('bi-eye');
+                            icon.classList.add('bi-eye-slash');
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Auto-fill for sample accounts (for demo purposes)
+        const accountLinks = document.querySelectorAll('.sample-accounts-list strong');
+        accountLinks.forEach(function(link) {
+            link.style.cursor = 'pointer';
+            link.addEventListener('click', function() {
+                const username = this.textContent.trim();
+                const password = 'password123';
+                
+                document.getElementById('floatingUsername').value = username;
+                document.getElementById('floatingPassword').value = password;
+            });
+        });
+    });
+</script>
+{% endblock %}

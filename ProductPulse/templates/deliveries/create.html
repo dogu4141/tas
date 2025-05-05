@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Yeni İrsaliye{% endblock %}
+
+{% block page_title %}Yeni İrsaliye{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-7 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">İrsaliye Bilgileri</h5>
+                <button type="button" id="generateDeliveryNumberBtn" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-shuffle"></i> İrsaliye No Oluştur
+                </button>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('deliveries.create_delivery', items=request.args.get('items', '')) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="delivery_number" class="form-label required-label">{{ form.delivery_number.label.text }}</label>
+                                {{ form.delivery_number(class="form-control", placeholder="İrsaliye numarası girin") }}
+                                {% if form.delivery_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.delivery_number.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="driver_id" class="form-label required-label">{{ form.driver_id.label.text }}</label>
+                                {{ form.driver_id(class="form-select") }}
+                                {% if form.driver_id.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.driver_id.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="issue_date" class="form-label required-label">{{ form.issue_date.label.text }}</label>
+                                {{ form.issue_date(class="form-control", type="date") }}
+                                {% if form.issue_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.issue_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="issue_time" class="form-label required-label">{{ form.issue_time.label.text }}</label>
+                                {{ form.issue_time(class="form-control", type="time") }}
+                                {% if form.issue_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.issue_time.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="loading_yard" class="form-label">{{ form.loading_yard.label.text }}</label>
+                                {{ form.loading_yard(class="form-control", placeholder="Yükleme sahası girin") }}
+                                {% if form.loading_yard.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.loading_yard.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">{{ form.notes.label.text }}</label>
+                                {{ form.notes(class="form-control", placeholder="Notlar girin", rows=3) }}
+                                {% if form.notes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.notes.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Araç Ekle</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('deliveries.add_delivery_item', items=request.args.get('items', '')) }}" id="addChassisForm">
+                    {{ item_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="chassis_number" class="form-label required-label">{{ item_form.chassis_number.label.text }}</label>
+                        <div class="input-group">
+                            {{ item_form.chassis_number(class="form-control chassis-input", placeholder="Şasi numarası girin") }}
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> Ekle
+                            </button>
+                        </div>
+                        {% if item_form.chassis_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in item_form.chassis_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Şasi numarasını girerek araç ekleyin. Araç sistemde mevcutsa marka ve model bilgileri otomatik olarak doldurulacaktır.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="brand" class="form-label">{{ item_form.brand.label.text }}</label>
+                        {{ item_form.brand(class="form-control brand-input", placeholder="Sistemde yoksa marka girin") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="model" class="form-label">{{ item_form.model.label.text }}</label>
+                        {{ item_form.model(class="form-control model-input", placeholder="Sistemde yoksa model girin") }}
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <h6 class="mb-3">İrsaliyedeki Araçlar</h6>
+                {% if items %}
+                    <ul class="list-group" id="chassisList">
+                        {% for item in items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center" data-chassis="{{ item.chassis_number }}" data-brand="{{ item.brand }}" data-model="{{ item.model }}">
+                                <div>
+                                    <strong>{{ item.chassis_number }}</strong>
+                                    <span class="text-muted ms-2">{{ item.brand }} {{ item.model }}</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('deliveries.remove_delivery_item', items=request.args.get('items', '')) }}">
+                                    <input type="hidden" name="chassis_number" value="{{ item.chassis_number }}">
+                                    <button type="submit" class="btn btn-sm btn-danger remove-chassis">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="alert alert-info">
+                        Henüz hiç araç eklenmemiş.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Toplam: <strong>{{ items|length }}</strong> araç</span>
+                    <a href="{{ url_for('deliveries.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> İptal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/deliveries.js') }}"></script>
+{% endblock %}

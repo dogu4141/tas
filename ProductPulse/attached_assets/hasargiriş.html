@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taşdanlar Otomotiv - Hasar Girişi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f6fa;
+            color: #1a202c;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .data-entry-container {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #1a202c;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .form-group:not(:last-child)::after {
+            content: '';
+            display: block;
+            border-bottom: 1px solid #e2e8f0;
+            margin-top: 10px;
+        }
+
+        .form-group label {
+            font-weight: 400;
+            color: #4a5568;
+            margin-bottom: 4px;
+            display: block;
+            font-size: 0.8rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.1);
+            outline: none;
+        }
+
+        .form-group input:disabled {
+            background: #edf2f7;
+            color: #718096;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 12px;
+        }
+
+        .file-upload-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-upload-group input[type="file"] {
+            border: none;
+            padding: 0;
+            font-size: 0.75rem;
+            background: transparent;
+        }
+
+        .file-upload-group input[type="file"]::file-selector-button {
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            background: #f7fafc;
+            color: #4a5568;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .file-upload-group input[type="file"]::file-selector-button:hover {
+            background: #edf2f7;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .buttons button {
+            padding: 7px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .buttons button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-islemler {
+            background: linear-gradient(135deg, #3182ce, #2b6cb0);
+        }
+
+        .btn-islemler:hover {
+            background: linear-gradient(135deg, #2b6cb0, #2c5282);
+        }
+
+        .btn-kaydet {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+        }
+
+        .btn-kaydet:hover {
+            background: linear-gradient(135deg, #2f855a, #276749);
+        }
+
+        .btn-iptal {
+            background: linear-gradient(135deg, #a0aec0, #718096);
+        }
+
+        .btn-iptal:hover {
+            background: linear-gradient(135deg, #718096, #5a657a);
+        }
+
+        /* Responsive Tasarım */
+        @media (max-width: 480px) {
+            .data-entry-container {
+                padding: 12px;
+                max-width: 95%;
+            }
+            .buttons {
+                flex-direction: column;
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="data-entry-container" id="contentArea">
+        <h3>Hasar Girişi</h3>
+        <div class="form-group">
+            <label for="sasi-no">Şasi No</label>
+            <input type="text" id="sasi-no" placeholder="Şasi Numarasını Girin">
+        </div>
+        <div class="buttons">
+            <button class="btn-islemler" id="islemlerBtn">İşlemler</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const islemlerBtn = document.getElementById('islemlerBtn');
+            const contentArea = document.getElementById('contentArea');
+
+            // Mock veritabanı
+            const mockDatabase = {
+                'W0VEDYHP9SN512197': {
+                    brand: 'OPEL',
+                    model: 'COMBO'
+                }
+            };
+
+            // İşlemler butonu: Şasi girişini kaldırıp hasar formunu gösterir
+            islemlerBtn.addEventListener('click', () => {
+                const sasiNo = document.getElementById('sasi-no').value.trim();
+                if (!sasiNo) {
+                    alert('Lütfen şasi numarasını girin!');
+                    return;
+                }
+
+                const vehicle = mockDatabase[sasiNo] || { brand: 'Bilinmeyen', model: 'Bilinmeyen' };
+                contentArea.innerHTML = `
+                    <h3>Hasar Girişi</h3>
+                    <form id="damageEntryForm">
+                        <div class="form-group">
+                            <label for="sasi-no-form">Şasi No</label>
+                            <input type="text" id="sasi-no-form" value="${sasiNo}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="marka">Marka</label>
+                            <input type="text" id="marka" value="${vehicle.brand}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Model</label>
+                            <input type="text" id="model" value="${vehicle.model}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="groupList">Grup Seçiniz</label>
+                            <select id="groupList" name="group">
+                                <option value="">Grup Seçiniz</option>
+                                <option value="35">1 - ANTEN/ANTEN ÜNİTESİ</option>
+                                <option value="36">2 - AKÜ</option>
+                                <option value="37">3 - TAMPON/KAPAK/DIŞ, ÖN</option>
+                                <option value="38">4 - TAMPON/KAPAK/DIŞ, ARKA</option>
+                                <option value="39">5 - TAMPON KORUMASI/ŞERİDİ, ÖN</option>
+                                <option value="40">6 - TAMPON KORUMASI/ŞERİDİ, ARKA</option>
+                                <option value="41">7 - BAGAJ KAPISI – SAĞ</option>
+                                <option value="42">8 - BAGAJ KAPISI – SOL</option>
+                                <option value="43">9 - BAGAJ KAPISI (SÜRGÜLÜ) SAĞ/SOL</option>
+                                <option value="44">10 - KAPI, SOL ÖN</option>
+                                <option value="45">11 - KAPI, SOL ARKA</option>
+                                <option value="46">12 - KAPI, SAĞ ÖN</option>
+                                <option value="47">13 - KAPI, SAĞ ARKA</option>
+                                <option value="48">14 - ÇAMURLUK, SOL ÖN</option>
+                                <option value="49">15 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SOL</option>
+                                <option value="50">16 - ÇAMURLUK, SAĞ ÖN</option>
+                                <option value="51">17 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SAĞ</option>
+                                <option value="52">18 - ÖN ZEMİN PASPASLARI</option>
+                                <option value="53">19 - ARKA ZEMİN PASPASLARI</option>
+                                <option value="54">20 - ÖN CAM</option>
+                                <option value="55">21 - ARKA CAM</option>
+                                <option value="56">22 - ÖN IZGARA</option>
+                                <option value="57">23 - AKSESUAR ÇANTASI/KUTUSU</option>
+                                <option value="58">24 - FAR/KAPAK/SİNYAL LAMBASI</option>
+                                <option value="59">25 - FARLAR, SİS/SÜRÜŞ/SPOT LT.</option>
+                                <option value="60">26 - İÇ TAVAN DÖŞEMESİ</option>
+                                <option value="61">27 - KAPUT</option>
+                                <option value="62">28 - ANAHTARLAR</option>
+                                <option value="63">29 - ANAHTARSIZ UZAKTAN KUMANDA</option>
+                                <option value="64">30 - AYNA, DIŞ, SOL</option>
+                                <option value="65">31 - AYNA, DIŞ, SAĞ</option>
+                                <option value="66">32 - AĞIR HASAR (ORİJİNAL PARÇA DEĞİŞİMİ)</option>
+                                <option value="67">33 - ÖN MULTİMEDYA</option>
+                                <option value="68">34 - ARKA MULTİMEDYA</option>
+                                <option value="69">35 - SALINCAK PANELİ / DIŞ EŞİK SOL</option>
+                                <option value="70">36 - SALINCAK PANELİ / DIŞ EŞİK SAĞ</option>
+                                <option value="71">37 - TAVAN</option>
+                                <option value="72">38 - BİNİŞ PLATFORMU/BASAMAĞI, SOL</option>
+                                <option value="73">39 - BİNİŞ PLATFORMU/BASAMAĞI, SAĞ</option>
+                                <option value="74">40 - YEDEK LASTİK</option>
+                                <option value="75">41 - ELEKTRİKLİ ARAÇ ŞARJ KABLOSU</option>
+                                <option value="76">42 - ALT PANEL/ÖN SPOİLER</option>
+                                <option value="77">44 - BENZİN DEPOSU</option>
+                                <option value="78">45 - ARKA LAMBA/DONANIM</option>
+                                <option value="79">46 - KAMYON KABİNİ, ARKA</option>
+                                <option value="80">48 - SOL ÖN İÇ DÖŞEME PANELİ</option>
+                                <option value="81">50 - SAĞ ÖN İÇ DÖŞEME PANELİ</option>
+                                <option value="82">51 - BRANDA</option>
+                                <option value="83">52 - ARKA KAPAK/BAGAJ KAPAĞI/HATCHBACK</option>
+                                <option value="84">53 - TAVAN PENCERESİ/CAM TAVAN</option>
+                                <option value="85">54 - ALT TAKIM/DİĞER</option>
+                                <option value="86">55 - YÜK ALANI, DİĞER</option>
+                                <option value="87">56 - AÇILIR TAVAN</option>
+                                <option value="88">57 - JANT KAPAKLARI</option>
+                                <option value="89">58 - RADYO HOPARLÖRLERİ</option>
+                                <option value="90">59 - SİLECEKLER, HEPSİ</option>
+                                <option value="91">60 - TAKOZLAR</option>
+                                <option value="92">61 - BAGAJ İÇİ, KAMYONET</option>
+                                <option value="93">62 - TÜM ARAÇ</option>
+                                <option value="94">63 - RAYLAR, KAMYON KASASI/IŞIK ÇUBUĞU</option>
+                                <option value="95">64 - DEFLEKTÖR/SPOİLER, ARKA</option>
+                                <option value="96">65 - BAGAJ RAFI / ŞERİTLER / DAMLAMA RAYI</option>
+                                <option value="97">66 - GÖSTERGE PANELİ</option>
+                                <option value="98">67 - ÇAKMAK/KÜL TABLASI</option>
+                                <option value="99">68 - PASPAS, ÖN</option>
+                                <option value="100">69 - ORTA DİREK, SAĞ</option>
+                                <option value="101">70 - ORTA DİREK, SOL</option>
+                                <option value="102">71 - KÖŞE DİREĞİ</option>
+                                <option value="103">72 - SOL ÖN LASTİK</option>
+                                <option value="104">73 - SOL ÖN JANT</option>
+                                <option value="105">74 - SOL ARKA LASTİK</option>
+                                <option value="106">75 - SOL ARKA JANT</option>
+                                <option value="107">76 - SAĞ ARKA LASTİK</option>
+                                <option value="108">77 - SAĞ ARKA JANT</option>
+                                <option value="109">78 - SAĞ ÖN LASTİK</option>
+                                <option value="110">79 - SAĞ ÖN JANT</option>
+                                <option value="111">80 - BAŞLIK</option>
+                                <option value="112">81 - GAZ/AKÜ KAPAĞI/YAKIT KAPAĞI</option>
+                                <option value="113">82 - ÇAMURLUK-ARKA, SOL</option>
+                                <option value="114">83 - ÇAMURLUK-ARKA, SAĞ</option>
+                                <option value="115">84 - ALETLER/KRİKO/STEPNE MONTAJI VE KİLİDİ</option>
+                                <option value="116">85 - SD/MULTİMEDYA KİTİ</option>
+                                <option value="117">86 - PARK SONAR SİSTEMİ</option>
+                                <option value="118">89 - RÖMORK BAĞLANTISI, ÇEKME KANCALARI</option>
+                                <option value="119">90 - ŞASİ</option>
+                                <option value="120">91 - EGZOZ SİSTEMİ</option>
+                                <option value="121">92 - PLAKA ÇERÇEVESİ</option>
+                                <option value="122">93 - DİREKSİYON SİMİDİ/HAVA YASTIĞI</option>
+                                <option value="123">94 - KOLTUK, SOL ÖN</option>
+                                <option value="124">95 - KOLTUK, SAĞ ÖN</option>
+                                <option value="125">96 - KOLTUK, ARKA</option>
+                                <option value="126">97 - PASPAS, ARKA</option>
+                                <option value="127">98 - İÇ DÖŞEME</option>
+                                <option value="128">99 - MOTOR BÖLMESİ, DİĞER</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="descriptionList">Tanım Seçiniz</label>
+                            <select id="descriptionList" name="description">
+                                <option value="">Tanım Seçiniz</option>
+                                <option value="760">1 - BÜKÜLME</option>
+                                <option value="761">2 - ÇALIŞAMAZ DURUMDA</option>
+                                <option value="762">3 - KESİK</option>
+                                <option value="763">4 - EZİK - BOYA VEYA KROM HASARLI</option>
+                                <option value="764">5 - ÇENTİKLİ - CAM VEYA PANEL KENARI İÇİN DEĞİL</option>
+                                <option value="765">6 - ÇATLAK - CAM İÇİN DEĞİL</option>
+                                <option value="766">7 - OYULMUŞ</option>
+                                <option value="767">8 - EKSİK</option>
+                                <option value="768">9 - AŞINMIŞ</option>
+                                <option value="769">10 - LEKELİ VEYA KİRLİ - İÇ MEKAN</option>
+                                <option value="770">11 - DELİNMİŞ</option>
+                                <option value="771">12 - ÇİZİK - CAM İÇİN DEĞİL</option>
+                                <option value="772">13 - YIRTIK</option>
+                                <option value="773">14 - EZİK BOYA/KROM HASARSIZ</option>
+                                <option value="774">15 - TAM GÖVDE ARAÇ ÖRTÜSÜ – HASARLI</option>
+                                <option value="775">16 - TERMAL OLAY/YANGIN</option>
+                                <option value="776">18 - KALIPLAMA/AMBLEM/HAVA ŞERİDİ HASARLI</option>
+                                <option value="777">19 - KALIPLAMA/AMBLEM/HAVA ŞERİDİ GEVŞEK</option>
+                                <option value="778">20 - ÇATLAK CAM</option>
+                                <option value="779">21 - KIRIK CAM</option>
+                                <option value="780">22 - YONTULMUŞ CAM</option>
+                                <option value="781">23 - ÇİZİK CAM</option>
+                                <option value="782">24 - İŞARET IŞIĞI HASARLI</option>
+                                <option value="783">25 - ÇIKARTMA/BOYA ÇİZGİSİ HASARLI</option>
+                                <option value="784">29 - KİRLENME, DIŞ</option>
+                                <option value="785">30 - SIVI DÖKÜLMESİ, DIŞ</option>
+                                <option value="786">31 - HIRSIZLIK/VANDALİZM</option>
+                                <option value="787">34 - KIRIK PANEL KENARI</option>
+                                <option value="788">36 - YANLIŞ PARÇA VEYA SEÇENEK FATURA EDİLDİĞİ GİBİ DEĞİL</option>
+                                <option value="789">37 - DONANIM - HASARLI</option>
+                                <option value="790">38 - DONANIM - GEVŞEK, EKSİK</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="levelList">Seviye Seçiniz</label>
+                            <select id="levelList" name="level">
+                                <option value="">Seviye Seçiniz</option>
+                                <option value="1">1 - 1" uzunluğa / çapa kadar olan hasarlar - 2,5 cm'den az</option>
+                                <option value="2">2 - 1"den 3"e kadar uzunluktaki / çaplı hasarlar - 2,5 cm'den 7,5 cm'ye kadar</option>
+                                <option value="3">3 - 3"den 6"ya kadar uzunluktaki / çaplı hasarlar - 7,5 cm'den 15 cm'ye kadar</option>
+                                <option value="4">4 - 6"den 12"ye kadar uzunluktaki / çaptaki hasarlar – 15 cm'den 30 cm'ye kadar</option>
+                                <option value="5">5 - 12" uzunluğundan / çapından büyük hasarlar – 30 cm ve üzeri</option>
+                                <option value="6">6 - Eksik/Büyük Hasar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="explanation">Açıklama</label>
+                            <textarea id="explanation" name="explanation" placeholder="Açıklama (opsiyonel)"></textarea>
+                        </div>
+                        <div class="form-group file-upload-group">
+                            <label>Resimler (opsiyonel, en fazla 5 adet)</label>
+                            <input type="file" id="photo1" name="photo1" accept="image/*">
+                            <input type="file" id="photo2" name="photo2" accept="image/*">
+                            <input type="file" id="photo3" name="photo3" accept="image/*">
+                            <input type="file" id="photo4" name="photo4" accept="image/*">
+                            <input type="file" id="photo5" name="photo5" accept="image/*">
+                        </div>
+                        <div class="buttons">
+                            <button type="submit" class="btn-kaydet">Bitir</button>
+                            <button type="button" class="btn-iptal" id="formIptalBtn">İptal</button>
+                        </div>
+                    </form>
+                `;
+                bindFormEvents();
+            });
+
+            // Form olaylarını bağlayan fonksiyon
+            function bindFormEvents() {
+                const damageEntryForm = document.getElementById('damageEntryForm');
+                const formIptalBtn = document.getElementById('formIptalBtn');
+
+                if (formIptalBtn) {
+                    formIptalBtn.addEventListener('click', () => {
+                        contentArea.innerHTML = `
+                            <h3>Hasar Girişi</h3>
+                            <div class="form-group">
+                                <label for="sasi-no">Şasi No</label>
+                                <input type="text" id="sasi-no" placeholder="Şasi Numarasını Girin">
+                            </div>
+                            <div class="buttons">
+                                <button class="btn-islemler" id="islemlerBtn">İşlemler</button>
+                            </div>
+                        `;
+                        const newIslemlerBtn = document.getElementById('islemlerBtn');
+                        newIslemlerBtn.addEventListener('click', islemlerBtn.onclick);
+                    });
+                }
+
+                if (damageEntryForm) {
+                    damageEntryForm.addEventListener('submit', e => {
+                        e.preventDefault();
+                        const group = document.getElementById('groupList').value;
+                        const description = document.getElementById('descriptionList').value;
+                        const level = document.getElementById('levelList').value;
+                        if (!group || !description || !level) {
+                            alert('Lütfen grup, tanım ve seviye alanlarını doldurun!');
+                            return;
+                        }
+                        alert('Hasar girişi başarıyla kaydedildi!');
+                        contentArea.innerHTML = `
+                            <h3>Hasar Girişi</h3>
+                            <div class="form-group">
+                                <label for="sasi-no">Şasi No</label>
+                                <input type="text" id="sasi-no" placeholder="Şasi Numarasını Girin">
+                            </div>
+                            <div class="buttons">
+                                <button class="btn-islemler" id="islemlerBtn">İşlemler</button>
+                            </div>
+                        `;
+                        const newIslemlerBtn = document.getElementById('islemlerBtn');
+                        newIslemlerBtn.addEventListener('click', islemlerBtn.onclick);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

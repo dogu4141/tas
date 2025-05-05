@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Hasar Tipi Ekle{% endblock %}
+
+{% block page_title %}Hasar Tipi Ekle{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('damages.damage_types') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Yeni Hasar Tipi</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('damages.add_damage_type') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label required-label">{{ form.name.label.text }}</label>
+                        {{ form.name(class="form-control", placeholder="Hasar tipinin adını girin") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">{{ form.description.label.text }}</label>
+                        {{ form.description(class="form-control", placeholder="Hasar tipinin detaylı açıklamasını girin", rows=3) }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Gösterge Paneli{% endblock %}
+
+{% block page_title %}Gösterge Paneli{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 col-xl-3 mb-4">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.vehicles_count }}</div>
+                        <div class="text-white-50">Toplam Araç</div>
+                    </div>
+                    <div class="icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('vehicles.index') }}" class="text-white text-decoration-none">
+                    <small>Detayları Görüntüle <i class="bi bi-arrow-right ms-1"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-xl-3 mb-4">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.open_damages_count }}</div>
+                        <div class="text-white-50">Açık Hasar Kaydı</div>
+                    </div>
+                    <div class="icon">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('damages.index') }}" class="text-white text-decoration-none">
+                    <small>Detayları Görüntüle <i class="bi bi-arrow-right ms-1"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-xl-3 mb-4">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.deliveries_count }}</div>
+                        <div class="text-white-50">İrsaliye</div>
+                    </div>
+                    <div class="icon">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('deliveries.index') }}" class="text-white text-decoration-none">
+                    <small>Detayları Görüntüle <i class="bi bi-arrow-right ms-1"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-xl-3 mb-4">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.active_loads_count }}</div>
+                        <div class="text-white-50">Aktif Yük</div>
+                    </div>
+                    <div class="icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('loads.index') }}" class="text-white text-decoration-none">
+                    <small>Detayları Görüntüle <i class="bi bi-arrow-right ms-1"></i></small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Son Aktiviteler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Zaman</th>
+                                <th>Kullanıcı</th>
+                                <th>İşlem</th>
+                                <th>Detay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_logs %}
+                                {% for log in recent_logs %}
+                                <tr>
+                                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>{{ log.user.username if log.user else 'Sistem' }}</td>
+                                    <td>
+                                        {% if log.action == 'login' %}
+                                            <span class="badge bg-success">Giriş</span>
+                                        {% elif log.action == 'logout' %}
+                                            <span class="badge bg-secondary">Çıkış</span>
+                                        {% elif log.action.endswith('_create') %}
+                                            <span class="badge bg-primary">Oluşturma</span>
+                                        {% elif log.action.endswith('_update') %}
+                                            <span class="badge bg-info">Güncelleme</span>
+                                        {% elif log.action.endswith('_delete') %}
+                                            <span class="badge bg-danger">Silme</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ log.action }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.details }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Görüntülenecek aktivite kaydı bulunamadı.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                {% if current_user.role in ['admin', 'moderator'] %}
+                <a href="{{ url_for('admin.activity_logs') }}" class="btn btn-sm btn-outline-secondary">
+                    Tüm Aktiviteleri Görüntüle
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Sistem Özeti</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Toplam Kullanıcı
+                        <span class="badge bg-primary rounded-pill">{{ stats.users_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Toplam Araç
+                        <span class="badge bg-primary rounded-pill">{{ stats.vehicles_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Toplam Hasar Kaydı
+                        <span class="badge bg-primary rounded-pill">{{ stats.damages_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Onarılmamış Hasarlar
+                        <span class="badge bg-warning rounded-pill">{{ stats.open_damages_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Toplam İrsaliye
+                        <span class="badge bg-primary rounded-pill">{{ stats.deliveries_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Aktif Yükler
+                        <span class="badge bg-primary rounded-pill">{{ stats.active_loads_count }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">Son güncelleme: {{ now.strftime('%d/%m/%Y %H:%M') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Hızlı Erişim</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{{ url_for('vehicles.index') }}" class="btn btn-outline-primary w-100 h-100 py-3">
+                            <i class="bi bi-truck fs-4 d-block mb-2"></i>
+                            Araç Listesi
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{{ url_for('damages.record_damage') }}" class="btn btn-outline-warning w-100 h-100 py-3">
+                            <i class="bi bi-tools fs-4 d-block mb-2"></i>
+                            Hasar Kaydı Oluştur
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{{ url_for('deliveries.create_delivery') }}" class="btn btn-outline-success w-100 h-100 py-3">
+                            <i class="bi bi-receipt fs-4 d-block mb-2"></i>
+                            İrsaliye Oluştur
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{{ url_for('loads.create_load') }}" class="btn btn-outline-info w-100 h-100 py-3">
+                            <i class="bi bi-box-seam fs-4 d-block mb-2"></i>
+                            Yük Oluştur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

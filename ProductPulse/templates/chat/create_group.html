@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Sohbet Grubu Oluştur{% endblock %}
+
+{% block page_title %}Yeni Sohbet Grubu Oluştur{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('chat.index') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Mesajlara Dön
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-people-fill me-2"></i>Yeni Grup Oluştur
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('chat.create_group') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="name" class="form-label">Grup Adı <span class="text-danger">*</span></label>
+                            {{ form.name(class="form-control", id="name") }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="region" class="form-label">Bölge</label>
+                            {{ form.region(class="form-control", id="region") }}
+                            {% if form.region.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.region.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Açıklama</label>
+                        {{ form.description(class="form-control", id="description", rows=3) }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_private(class="form-check-input", id="is_private") }}
+                        <label class="form-check-label" for="is_private">Özel Grup</label>
+                        <div class="form-text">Özel grupları sadece eklenmiş üyeler görebilir.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="members" class="form-label">Grup Üyeleri</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="member-search" placeholder="Üye ara...">
+                        </div>
+                        <div class="form-text mb-2">Gruba eklemek istediğiniz kullanıcıları seçin.</div>
+                        
+                        <div class="member-select-container border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                            {{ form.members(class="member-select", id="members", multiple="multiple", style="display: none;") }}
+                            
+                            <div id="members-list" class="row row-cols-1 row-cols-md-2 g-2">
+                                {% for value, label in form.members.choices %}
+                                    <div class="col member-item">
+                                        <div class="form-check">
+                                            <input class="form-check-input member-checkbox" type="checkbox" value="{{ value }}" id="member-{{ value }}" 
+                                                {% if form.members.data and value in form.members.data %}checked{% endif %}>
+                                            <label class="form-check-label" for="member-{{ value }}">
+                                                {{ label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if form.members.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.members.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Member search functionality
+        const searchInput = document.getElementById('member-search');
+        const memberItems = document.querySelectorAll('.member-item');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            memberItems.forEach(item => {
+                const label = item.querySelector('label').textContent.toLowerCase();
+                
+                if (label.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Sync checkboxes with the actual select element
+        const selectElement = document.getElementById('members');
+        const checkboxes = document.querySelectorAll('.member-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectElement();
+            });
+        });
+        
+        function updateSelectElement() {
+            // Clear all options
+            while (selectElement.options.length > 0) {
+                selectElement.remove(0);
+            }
+            
+            // Add selected checkboxes
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const option = document.createElement('option');
+                    option.value = checkbox.value;
+                    option.text = checkbox.value;
+                    option.selected = true;
+                    selectElement.add(option);
+                }
+            });
+        }
+        
+        // Initial sync
+        updateSelectElement();
+    });
+</script>
+{% endblock %}

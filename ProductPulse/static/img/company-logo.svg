@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rectangle -->
+  <rect width="240" height="60" rx="6" fill="#0077B6"/>
+  
+  <!-- Truck icon -->
+  <g transform="translate(10, 10) scale(1.2)">
+    <path d="M29,9H25V5c0-1.105-0.895-2-2-2H2C0.895,3,0,3.895,0,5v18c0,1.105,0.895,2,2,2h2c0,2.209,1.791,4,4,4   s4-1.791,4-4h12c0,2.209,1.791,4,4,4s4-1.791,4-4h2c1.105,0,2-0.895,2-2v-7L29,9z M8,27c-1.105,0-2-0.895-2-2s0.895-2,2-2   s2,0.895,2,2S9.105,27,8,27z M25,21h-7V11h4.382L25,14.447V21z M24,27c-1.105,0-2-0.895-2-2s0.895-2,2-2s2,0.895,2,2   S25.105,27,24,27z" fill="white"/>
+  </g>
+  
+  <!-- Text for Taşdanlar -->
+  <text x="70" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">TAŞDANLAR</text>
+  
+  <!-- Text for Otomotiv -->
+  <text x="70" y="48" font-family="Arial, sans-serif" font-size="16" fill="#80CCFF">OTOMOTİV</text>
+</svg>

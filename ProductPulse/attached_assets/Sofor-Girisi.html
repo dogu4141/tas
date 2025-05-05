@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taşdanlar Otomotiv - Şoför Sayfası</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../Documents/Adlandırılmamış Site 2/css/stil.css">
+</head>
+<body>
+    <!-- Üst Kısım -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-text">TAŞDANLAR OTOMOTİV</span>
+        </div>
+        <nav class="menu">
+            <a href="#irsaliye-kes" data-target="irsaliye-kes" class="active">İrsaliye Kes</a>
+            <a href="#bilgileri-guncelle" data-target="bilgileri-guncelle">Bilgileri Güncelle</a>
+        </nav>
+        <div class="driver-info" id="driverInfo">
+            Ahmet Yılmaz
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="#" id="sifreGuncelleBtn">Şifre Güncelleme</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Şifre Güncelleme Popup -->
+    <div class="password-popup" id="passwordPopup">
+        <h3>Şifre Güncelleme</h3>
+        <div class="form-group">
+            <label for="eski-sifre">Eski Şifre</label>
+            <input type="password" id="eski-sifre" placeholder="Eski Şifrenizi Girin">
+        </div>
+        <div class="form-group">
+            <label for="yeni-sifre">Yeni Şifre</label>
+            <input type="password" id="yeni-sifre" placeholder="Yeni Şifrenizi Girin">
+        </div>
+        <div class="form-group">
+            <label for="yeni-sifre-tekrar">Yeni Şifre Tekrar</label>
+            <input type="password" id="yeni-sifre-tekrar" placeholder="Yeni Şifrenizi Tekrar Girin">
+        </div>
+        <div class="buttons">
+            <button class="btn-kaydet" id="guncelleBtn">Güncelle</button>
+            <button class="btn-iptal" id="kapatBtn">Kapat</button>
+        </div>
+    </div>
+
+    <!-- İrsaliye Kes Sayfası -->
+    <section class="data-entry-page content-section active" id="irsaliye-kes">
+        <div class="data-entry-container">
+            <div class="form-group">
+                <label for="tarih">Tarih</label>
+                <input type="date" id="tarih" value="2025-03-27">
+            </div>
+            <div class="form-group">
+                <label for="saat">Saat</label>
+                <input type="time" id="saat" value="22:10">
+            </div>
+            <div class="form-group">
+                <label for="irsaliye">İrsaliye No</label>
+                <input type="text" id="irsaliye" value="IR199070">
+            </div>
+            <div class="form-group">
+                <label for="yukleme-sahasi">Yükleme Sahası</label>
+                <select id="yukleme-sahasi">
+                    <option value="">Seçiniz</option>
+                    <option value="depo1">Depo 1</option>
+                    <option value="depo2">Depo 2</option>
+                    <option value="fabrika">Fabrika</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="bilgilerim">Bilgilerim</label>
+                <input type="text" id="bilgilerim" value="41 dogu 4125 ---> DOĞUKAN ÖZCAN">
+            </div>
+            <div class="buttons">
+                <button class="btn-yeni">Yeni</button>
+                <button class="btn-kaydet">Kaydet</button>
+            </div>
+            <div class="info">
+                <label>Eklenen Şasi: <span>0</span></label>
+                <input type="text" id="sasiNo" placeholder="Şasi No">
+                <a href="#" class="btn-ekle">Ekle</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bilgileri Güncelle Sayfası -->
+    <section class="data-entry-page content-section" id="bilgileri-guncelle">
+        <div class="data-entry-container">
+            <div class="form-group">
+                <label for="ad">Ad</label>
+                <input type="text" id="ad" placeholder="Adınızı Girin" value="Ahmet">
+            </div>
+            <div class="form-group">
+                <label for="soyad">Soyad</label>
+                <input type="text" id="soyad" placeholder="Soyadınızı Girin" value="Yılmaz">
+            </div>
+            <div class="form-group">
+                <label for="plaka">Plaka</label>
+                <input type="text" id="plaka" placeholder="Plakayı Girin" value="34 ABC 123">
+            </div>
+            <div class="form-group">
+                <label for="mail">Mail Adresi</label>
+                <input type="email" id="mail" placeholder="Mail Adresinizi Girin" value="ahmet.yilmaz@example.com">
+            </div>
+            <div class="form-group">
+                <label for="telefon">Telefon Numarası</label>
+                <input type="tel" id="telefon" placeholder="Telefon Numaranızı Girin" value="555 123 45 67">
+            </div>
+            <div class="buttons">
+                <button class="btn-kaydet">Kaydet</button>
+                <button class="btn-iptal">İptal Et</button>
+            </div>
+        </div>
+    </section>
+
+    <script src="../../Documents/Adlandırılmamış Site 2/js/komut.js"></script>
+</body>
+</html>

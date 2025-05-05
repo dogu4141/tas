@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Hasar Kaydı{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+    }
+    
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background-color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #e9ecef !important;
+        font-weight: 600 !important;
+        color: #212529 !important;
+        padding: 15px 20px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-control, .form-select {
+        background-color: #fff !important;
+        border: 1px solid #ced4da !important;
+        color: #212529 !important;
+        border-radius: 6px !important;
+        padding: 10px 12px !important;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #495057;
+    }
+    
+    .required-label::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .btn-primary {
+        background-color: #0077b6 !important;
+        border-color: #0077b6 !important;
+    }
+    
+    .btn-outline-secondary {
+        color: #6c757d !important;
+        border-color: #ced4da !important;
+    }
+    
+    .location-btn {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .location-btn:hover {
+        background-color: #5a6268;
+    }
+    
+    .form-row {
+        margin-left: -10px;
+        margin-right: -10px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .form-group {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 1rem;
+        flex: 1;
+    }
+    
+    .date-input {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' class='bi bi-calendar' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px !important;
+    }
+    
+    .action-buttons {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-buttons .btn {
+        flex: 1;
+        padding: 10px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+    }
+    
+    /* Data table styles */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .data-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        color: #212529;
+    }
+    
+    .data-table tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .filter-row {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    
+    .filter-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #495057;
+    }
+    
+    .search-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    
+    .search-btn:hover {
+        background-color: #c82333;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}{{ 'Hasar Kaydı Düzenle' if edit_mode else 'Yeni Hasar Kaydı' }}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('damages.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Entry Form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ 'Hasar Bilgilerini Düzenle' if edit_mode else 'Yeni Kayıt Ekle' }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('damages.edit_damage', damage_id=damage.id) if edit_mode else url_for('damages.record_damage') }}">
+                {{ form.hidden_tag() }}
+                {{ form.location_x }}
+                {{ form.location_y }}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date" class="form-label required-label">Tarih</label>
+                        <input type="date" class="form-control date-input" id="date" name="date" value="{{ today_date }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chassis_number" class="form-label required-label">{{ form.chassis_number.label.text }}</label>
+                        {{ form.chassis_number(class="form-control", placeholder="Şasi Numarası") }}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="model" class="form-label required-label">Model</label>
+                        <select class="form-select" id="model" name="model">
+                            <option value="">Model Seçiniz</option>
+                            {% for model in models %}
+                                <option value="{{ model.id }}">{{ model.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="driver" class="form-label required-label">Şoför</label>
+                        <select class="form-select" id="driver" name="driver">
+                            <option value="">Şoför Seçiniz</option>
+                            {% for driver in drivers %}
+                                <option value="{{ driver.id }}">{{ driver.full_name() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="group" class="form-label required-label">Grup Seçiniz</label>
+                        <select class="form-select" id="group" name="group">
+                            <option value="">Grup Seçiniz</option>
+                            <option value="1">Karoser</option>
+                            <option value="2">Motor</option>
+                            <option value="3">İç Aksam</option>
+                            <option value="4">Elektrik</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="damage_type_id" class="form-label required-label">{{ form.damage_type_id.label.text }}</label>
+                        {{ form.damage_type_id(class="form-select") }}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="severity" class="form-label required-label">{{ form.severity.label.text }}</label>
+                        {{ form.severity(class="form-select") }}
+                    </div>
+                    <div class="form-group">
+                        <label for="status" class="form-label required-label">{{ form.status.label.text }}</label>
+                        {{ form.status(class="form-select") }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label">{{ form.description.label.text }} (Opsiyonel)</label>
+                    {{ form.description(class="form-control", placeholder="Açıklama", rows=3) }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes" class="form-label">Notlar (Opsiyonel)</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Kayıt için notlar"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Hasar Yeri</label>
+                    <button type="button" class="location-btn" id="selectLocationBtn">
+                        Yer Seç <i class="bi bi-geo-alt ms-1"></i>
+                    </button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Kaydet
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="location.href='{{ url_for('damages.index') }}'">
+                        <i class="bi bi-x me-1"></i> Vazgeç
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="copyBtn">
+                        <i class="bi bi-clipboard me-1"></i> Kopyala
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Kayıtlar</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary" id="refreshBtn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-1" id="exportBtn">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="filter-row">
+                <div class="filter-title">Hızlı Arama</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Şasi No" id="searchChassis">
+                    </div>
+                    <div class="form-group">
+                        <select class="form-select" id="searchModel">
+                            <option value="">Tümü</option>
+                            {% for model in models %}
+                                <option value="{{ model.id }}">{{ model.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-select" id="searchDriver">
+                            <option value="">Tümü</option>
+                            {% for driver in drivers %}
+                                <option value="{{ driver.id }}">{{ driver.full_name() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="search-btn" id="searchBtn">
+                            <i class="bi bi-search me-1"></i> Seçimleri Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th>Tarih</th>
+                            <th>Şasi No</th>
+                            <th>Model</th>
+                            <th>Şoför</th>
+                            <th>Grup</th>
+                            <th>Tanım</th>
+                            <th>Seviye</th>
+                            <th>Açıklama</th>
+                            <th>Notlar</th>
+                            <th>Yer</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for damage in damages %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" value="{{ damage.id }}">
+                            </td>
+                            <td>{{ damage.recorded_at.strftime('%d-%m-%Y') }}</td>
+                            <td>{{ damage.vehicle.chassis_number }}</td>
+                            <td>{{ damage.vehicle.brand }} {{ damage.vehicle.model }}</td>
+                            <td>{{ damage.recorder.username if damage.recorder else 'Bilinmiyor' }}</td>
+                            <td>{{ damage.damage_type.name }}</td>
+                            <td>{{ {'minor': 'Hafif', 'moderate': 'Orta', 'severe': 'Ağır'}[damage.severity] }}</td>
+                            <td>{{ {'pending': 'Beklemede', 'in_progress': 'İşlemde', 'repaired': 'Onarıldı'}[damage.status] }}</td>
+                            <td>{{ damage.description|truncate(30) }}</td>
+                            <td>-</td>
+                            <td>
+                                {% if damage.location_x and damage.location_y %}
+                                <i class="bi bi-geo-alt-fill text-success"></i>
+                                {% else %}
+                                <i class="bi bi-geo-alt text-secondary"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('damages.view_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('damages.edit_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Location Selection Modal -->
+<div class="modal fade" id="locationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hasar Yeri Seçin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="car-image-container">
+                    <img src="{{ url_for('static', filename='img/car-diagram.svg') }}" class="car-image img-fluid">
+                    <div class="marker-container" id="markerContainer"></div>
+                </div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Araç üzerinde hasarlı bölgeyi işaretlemek için tıklayın.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveLocationBtn">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Populate today's date
+        const today = new Date();
+        const formattedDate = today.toISOString().substr(0, 10);
+        document.getElementById('date').value = formattedDate;
+        
+        // Location modal handling
+        const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
+        const selectLocationBtn = document.getElementById('selectLocationBtn');
+        const saveLocationBtn = document.getElementById('saveLocationBtn');
+        const locationXInput = document.getElementById('location_x');
+        const locationYInput = document.getElementById('location_y');
+        
+        selectLocationBtn.addEventListener('click', function() {
+            locationModal.show();
+        });
+        
+        saveLocationBtn.addEventListener('click', function() {
+            selectLocationBtn.innerHTML = 'Yer Seçildi <i class="bi bi-check-circle-fill ms-1 text-success"></i>';
+            locationModal.hide();
+        });
+        
+        // Car damage marking functionality
+        let markers = [];
+        let markerCount = 0;
+        const markerContainer = document.getElementById('markerContainer');
+        const carImage = document.querySelector('.car-image');
+        
+        // If coordinates are already set (edit mode), load them
+        if (locationXInput.value && locationYInput.value) {
+            try {
+                const xCoords = JSON.parse(locationXInput.value);
+                const yCoords = JSON.parse(locationYInput.value);
+                
+                if (Array.isArray(xCoords) && Array.isArray(yCoords) && xCoords.length === yCoords.length) {
+                    for (let i = 0; i < xCoords.length; i++) {
+                        addMarker(xCoords[i], yCoords[i]);
+                    }
+                    
+                    if (xCoords.length > 0) {
+                        selectLocationBtn.innerHTML = 'Yer Seçildi <i class="bi bi-check-circle-fill ms-1 text-success"></i>';
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing coordinates:', e);
+            }
+        }
+        
+        carImage.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            // Clear existing markers before adding a new one
+            clearMarkers();
+            addMarker(x, y);
+            updateCoordinates();
+        });
+        
+        function addMarker(x, y) {
+            markerCount++;
+            
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.style.left = `${x}%`;
+            marker.style.top = `${y}%`;
+            marker.setAttribute('data-index', markerCount);
+            marker.style.position = 'absolute';
+            marker.style.width = '20px';
+            marker.style.height = '20px';
+            marker.style.backgroundColor = '#ef4444';
+            marker.style.borderRadius = '50%';
+            marker.style.transform = 'translate(-50%, -50%)';
+            marker.style.border = '2px solid white';
+            marker.style.boxShadow = '0 0 4px rgba(0,0,0,0.3)';
+            marker.style.zIndex = '10';
+            marker.style.cursor = 'pointer';
+            
+            markerContainer.appendChild(marker);
+            
+            markers.push({ element: marker, x: x, y: y, index: markerCount });
+            
+            marker.addEventListener('click', function(e) {
+                e.stopPropagation();
+                removeMarker(this.getAttribute('data-index'));
+            });
+        }
+        
+        function removeMarker(index) {
+            const markerToRemove = markers.find(m => m.index == index);
+            if (markerToRemove) {
+                markerToRemove.element.remove();
+                markers = markers.filter(m => m.index != index);
+                updateCoordinates();
+            }
+        }
+        
+        function clearMarkers() {
+            markers.forEach(marker => {
+                marker.element.remove();
+            });
+            markers = [];
+        }
+        
+        function updateCoordinates() {
+            const xCoords = markers.map(m => m.x);
+            const yCoords = markers.map(m => m.y);
+            
+            locationXInput.value = JSON.stringify(xCoords);
+            locationYInput.value = JSON.stringify(yCoords);
+        }
+        
+        // Additional interactive functionality
+        const chassisInput = document.getElementById('chassis_number');
+        chassisInput.addEventListener('change', function() {
+            // In a real application, you would fetch vehicle data here
+            console.log('Fetching data for chassis:', this.value);
+        });
+        
+        // Search functionality
+        const searchBtn = document.getElementById('searchBtn');
+        searchBtn.addEventListener('click', function() {
+            document.getElementById('searchChassis').value = '';
+            document.getElementById('searchModel').value = '';
+            document.getElementById('searchDriver').value = '';
+        });
+        
+        // Select all checkboxes
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        
+        selectAllCheckbox.addEventListener('change', function() {
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+    });
+</script>
+{% endblock %}

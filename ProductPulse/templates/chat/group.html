@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ group.name }} - Grup Sohbeti{% endblock %}
+
+{% block page_title %}{{ group.name }}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('chat.index') }}" class="btn btn-secondary me-2">
+        <i class="bi bi-arrow-left"></i> Tüm Gruplar
+    </a>
+    {% if current_user.role in ['admin', 'moderator'] or group.created_by == current_user.id %}
+    <a href="{{ url_for('chat.edit_group', group_id=group.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-gear"></i> Grubu Düzenle
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="row g-0">
+        <!-- Sidebar - Group Info -->
+        <div class="col-md-3 border-end">
+            <div class="group-info p-3">
+                <div class="group-avatar mb-3">
+                    {% set initials = group.name.split()|map('first')|join('')|upper %}
+                    {% if initials %}
+                        <div class="avatar-circle bg-primary text-white">{{ initials[:2] }}</div>
+                    {% else %}
+                        <div class="avatar-circle bg-primary text-white"><i class="bi bi-people"></i></div>
+                    {% endif %}
+                </div>
+                
+                <h4 class="group-name mb-1">{{ group.name }}</h4>
+                
+                {% if group.region %}
+                <div class="group-region mb-2">
+                    <span class="badge bg-info text-dark">{{ group.region }}</span>
+                </div>
+                {% endif %}
+                
+                {% if group.description %}
+                <div class="group-description mb-3">
+                    <p class="text-muted">{{ group.description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="group-meta mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span>{{ group.members|length }} Üye</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        <span>{{ group.created_at.strftime('%d %B %Y') if group.created_at else 'Bilinmiyor' }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi {% if group.is_private %}bi-lock-fill{% else %}bi-globe{% endif %} me-2"></i>
+                        <span>{% if group.is_private %}Özel Grup{% else %}Genel Grup{% endif %}</span>
+                    </div>
+                </div>
+                
+                <div class="group-members">
+                    <h6 class="mb-3">Grup Üyeleri</h6>
+                    <div class="group-members-list">
+                        {% for member in group.members %}
+                            <div class="member-item d-flex align-items-center mb-2">
+                                <div class="member-avatar me-2">
+                                    {% set member_initials = (member.first_name[0] if member.first_name else '') + (member.last_name[0] if member.last_name else '') %}
+                                    {% if member_initials %}
+                                        <div class="avatar-circle-sm bg-secondary text-white">{{ member_initials }}</div>
+                                    {% else %}
+                                        <div class="avatar-circle-sm bg-secondary text-white"><i class="bi bi-person"></i></div>
+                                    {% endif %}
+                                </div>
+                                <div class="member-details">
+                                    <div class="member-name">
+                                        {{ member.full_name or member.username }}
+                                        {% if member.id == group.created_by|int %}
+                                            <span class="badge bg-warning text-dark">Kurucu</span>
+                                        {% endif %}
+                                        {% if member.id == current_user.id %}
+                                            <span class="badge bg-success">Sen</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="member-role text-muted small">
+                                        {% if member.role == 'admin' %}
+                                            Yönetici
+                                        {% elif member.role == 'moderator' %}
+                                            Moderatör
+                                        {% else %}
+                                            Üye
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if member.id != current_user.id %}
+                                <div class="member-actions ms-auto">
+                                    <a href="{{ url_for('chat.direct_message', user_id=member.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Özel Mesaj Gönder">
+                                        <i class="bi bi-chat-dots"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="col-md-9">
+            <div class="chat-area d-flex flex-column" style="height: calc(100vh - 150px);">
+                <!-- Messages -->
+                <div class="messages-container flex-grow-1 p-3 overflow-auto" id="messagesContainer">
+                    {% if messages.items %}
+                        {% for message in messages.items %}
+                            <div class="message-wrapper {% if message.sender_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}">
+                                <div class="message {% if message.sender_id == current_user.id %}outgoing{% else %}incoming{% endif %}">
+                                    {% if message.sender_id != current_user.id %}
+                                        <div class="message-sender">
+                                            {{ message.sender.full_name or message.sender.username }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="message-content">
+                                        {{ message.content }}
+                                        
+                                        {% if message.has_attachment and message.attachment %}
+                                            <div class="message-attachment">
+                                                <a href="{{ message.attachment.file_path }}" target="_blank" class="attachment-link">
+                                                    <i class="bi bi-paperclip"></i> 
+                                                    {{ message.attachment.file_name }}
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if message.location_lat and message.location_lng %}
+                                            <div class="message-location mt-2">
+                                                <div class="location-preview" data-lat="{{ message.location_lat }}" data-lng="{{ message.location_lng }}">
+                                                    <i class="bi bi-geo-alt"></i> Konum Paylaşıldı
+                                                    <div class="mini-map" id="map-{{ message.id }}"></div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="message-meta">
+                                        <span class="message-time">
+                                            {{ message.sent_at.strftime('%H:%M') }}
+                                        </span>
+                                        {% if message.sender_id == current_user.id %}
+                                            <span class="message-status">
+                                                {% if message.is_read %}
+                                                    <i class="bi bi-check2-all text-primary"></i>
+                                                {% else %}
+                                                    <i class="bi bi-check2"></i>
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        {% if messages.has_prev %}
+                            <div class="text-center my-3">
+                                <a href="{{ url_for('chat.view_group', group_id=group.id, page=messages.prev_num) }}" class="btn btn-sm btn-outline-secondary load-more-button">
+                                    <i class="bi bi-arrow-up"></i> Daha Eski Mesajları Yükle
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-chat-state text-center my-5">
+                            <i class="bi bi-chat-square-text" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Henüz mesaj yok</h5>
+                            <p class="text-muted">Bu grupta henüz hiç mesaj yok. İlk mesajı gönderen siz olun!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Message Form -->
+                <div class="message-form-container p-3 border-top">
+                    <form method="POST" action="{{ url_for('chat.send_message') }}" enctype="multipart/form-data" class="message-form" id="messageForm">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="group_id" value="{{ group.id }}">
+                        <input type="hidden" name="location_lat" id="location_lat">
+                        <input type="hidden" name="location_lng" id="location_lng">
+                        
+                        <div class="input-group">
+                            <textarea class="form-control message-input" name="content" placeholder="Mesajınızı yazın..." rows="1" id="messageInput"></textarea>
+                            
+                            <button type="button" class="btn btn-outline-secondary message-attachment-btn" id="attachmentBtn" title="Dosya Ekle">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-secondary message-location-btn" id="locationBtn" title="Konum Paylaş">
+                                <i class="bi bi-geo-alt"></i>
+                            </button>
+                            
+                            <button type="submit" class="btn btn-primary send-button" disabled id="sendBtn">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        
+                        <input type="file" name="attachment" id="attachmentInput" style="display: none;">
+                        
+                        <div class="message-extras mt-2" style="display: none;">
+                            <div class="attachment-preview" id="attachmentPreview"></div>
+                            <div class="location-preview" id="locationPreview"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+<style>
+    .chat-container {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        height: calc(100vh - 150px);
+    }
+    
+    .group-avatar {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    
+    .avatar-circle-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+    
+    .group-members-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .messages-container {
+        display: flex;
+        flex-direction: column-reverse;
+        overflow-y: auto;
+        background-color: #f5f7f9;
+    }
+    
+    .message-wrapper {
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .message-outgoing {
+        align-items: flex-end;
+    }
+    
+    .message-incoming {
+        align-items: flex-start;
+    }
+    
+    .message {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .message.outgoing {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message.incoming {
+        background-color: #fff;
+        color: #333;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .message-sender {
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+        color: #4a4a4a;
+    }
+    
+    .message-content {
+        font-size: 0.95rem;
+        word-break: break-word;
+        white-space: pre-line;
+    }
+    
+    .message-meta {
+        font-size: 0.75rem;
+        color: #939393;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .message-time {
+        margin-right: 5px;
+    }
+    
+    .message-status i {
+        font-size: 0.85rem;
+    }
+    
+    .message-form-container {
+        background-color: #fff;
+    }
+    
+    .message-input {
+        resize: none;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+    
+    .message-attachment {
+        margin-top: 8px;
+        padding: 8px;
+        background-color: rgba(0,0,0,0.03);
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .mini-map {
+        height: 150px;
+        border-radius: 8px;
+        margin-top: 8px;
+    }
+    
+    .attachment-preview {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .attachment-preview i {
+        margin-right: 10px;
+    }
+    
+    .location-preview {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const attachmentBtn = document.getElementById('attachmentBtn');
+        const attachmentInput = document.getElementById('attachmentInput');
+        const attachmentPreview = document.getElementById('attachmentPreview');
+        const locationBtn = document.getElementById('locationBtn');
+        const locationPreview = document.getElementById('locationPreview');
+        const messageForm = document.getElementById('messageForm');
+        const messageExtras = document.querySelector('.message-extras');
+        const locationLat = document.getElementById('location_lat');
+        const locationLng = document.getElementById('location_lng');
+        
+        // Scroll to bottom of messages container
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+        
+        // Enable/disable send button based on input
+        messageInput.addEventListener('input', function() {
+            sendBtn.disabled = this.value.trim() === '' && !attachmentInput.files.length && !locationLat.value;
+            
+            // Auto-expand textarea
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+        
+        // Handle attachment button click
+        attachmentBtn.addEventListener('click', function() {
+            attachmentInput.click();
+        });
+        
+        // Handle attachment selection
+        attachmentInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                
+                // Show attachment preview
+                messageExtras.style.display = 'block';
+                attachmentPreview.innerHTML = `
+                    <i class="bi bi-paperclip"></i>
+                    <div>
+                        <div class="fw-medium">${file.name}</div>
+                        <div class="text-muted small">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="removeAttachment">
+                        <i class="bi bi-x"></i>
+                    </button>
+                `;
+                
+                // Enable send button
+                sendBtn.disabled = false;
+                
+                // Handle remove attachment button
+                document.getElementById('removeAttachment').addEventListener('click', function() {
+                    attachmentInput.value = '';
+                    attachmentPreview.innerHTML = '';
+                    messageExtras.style.display = locationPreview.innerHTML ? 'block' : 'none';
+                    sendBtn.disabled = messageInput.value.trim() === '' && !locationLat.value;
+                });
+            }
+        });
+        
+        // Handle location button click
+        locationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                locationBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                locationBtn.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // Store location in hidden fields
+                        locationLat.value = position.coords.latitude;
+                        locationLng.value = position.coords.longitude;
+                        
+                        // Show location preview
+                        messageExtras.style.display = 'block';
+                        locationPreview.innerHTML = `
+                            <div>
+                                <i class="bi bi-geo-alt me-2"></i>
+                                <span>Konumunuz paylaşılacak</span>
+                                <div id="previewMap" style="height: 150px; border-radius: 6px; margin-top: 8px;"></div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger d-block mt-2" id="removeLocation">
+                                <i class="bi bi-x"></i> Konumu Kaldır
+                            </button>
+                        `;
+                        
+                        // Initialize preview map
+                        const previewMap = L.map('previewMap').setView([position.coords.latitude, position.coords.longitude], 15);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(previewMap);
+                        
+                        L.marker([position.coords.latitude, position.coords.longitude]).addTo(previewMap);
+                        
+                        // Enable send button
+                        sendBtn.disabled = false;
+                        
+                        // Handle remove location button
+                        document.getElementById('removeLocation').addEventListener('click', function() {
+                            locationLat.value = '';
+                            locationLng.value = '';
+                            locationPreview.innerHTML = '';
+                            messageExtras.style.display = attachmentPreview.innerHTML ? 'block' : 'none';
+                            sendBtn.disabled = messageInput.value.trim() === '' && !attachmentInput.files.length;
+                        });
+                        
+                        // Reset location button
+                        locationBtn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+                        locationBtn.disabled = false;
+                    },
+                    function(error) {
+                        console.error('Error getting location:', error);
+                        alert('Konum alınamadı: ' + error.message);
+                        
+                        // Reset location button
+                        locationBtn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+                        locationBtn.disabled = false;
+                    }
+                );
+            } else {
+                alert('Tarayıcınız konum paylaşımını desteklemiyor.');
+            }
+        });
+        
+        // Initialize location maps for existing messages
+        const locationPreviews = document.querySelectorAll('.location-preview');
+        locationPreviews.forEach(preview => {
+            const mapElement = preview.querySelector('.mini-map');
+            if (mapElement) {
+                const lat = parseFloat(preview.getAttribute('data-lat'));
+                const lng = parseFloat(preview.getAttribute('data-lng'));
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const map = L.map(mapElement.id).setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    L.marker([lat, lng]).addTo(map);
+                }
+            }
+        });
+        
+        // Handle form submission
+        messageForm.addEventListener('submit', function(e) {
+            // Disable submit button to prevent double submission
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        });
+        
+        // Format file size helper
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+            else return (bytes / 1073741824).toFixed(1) + ' GB';
+        }
+    });
+</script>
+{% endblock %}

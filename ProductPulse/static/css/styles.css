@@ -1,0 +1,341 @@
+/* Custom Styles for Taşdanlar Truck Management System */
+
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+    transition: all 0.3s;
+}
+
+.sidebar-sticky {
+    position: sticky;
+    top: 0;
+    height: calc(100vh);
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-heading {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 1rem 1rem 0.5rem;
+    font-weight: 600;
+}
+
+/* Main Content Styles */
+.main-content {
+    margin-left: 260px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -260px;
+    }
+    
+    .sidebar.active {
+        margin-left: 0;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .main-content.pushed {
+        margin-left: 260px;
+    }
+}
+
+/* Card Styles */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    font-weight: 600;
+}
+
+/* Table Styles */
+.table th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table-responsive {
+    border-radius: 0.5rem;
+}
+
+/* Stats Cards */
+.stat-card {
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card .icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-card .stat-number {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: 500;
+}
+
+.invalid-feedback {
+    font-size: 0.8rem;
+}
+
+.required-label::after {
+    content: " *";
+    color: var(--bs-danger);
+}
+
+/* Damage Marking */
+.car-image-container {
+    position: relative;
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.car-image {
+    width: 100%;
+    display: block;
+}
+
+.marker-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.marker {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background-color: var(--bs-danger);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.marker-number {
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+/* Load visualization */
+.load-layout {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.load-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    background: var(--bs-gray-800);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.load-position {
+    aspect-ratio: 1/1;
+    background: var(--bs-gray-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.load-position:hover {
+    background: var(--bs-gray-600);
+}
+
+.load-position.position-taken {
+    background: var(--bs-primary);
+    color: white;
+}
+
+.load-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.load-position-legend {
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
+}
+
+.load-position-legend.empty {
+    background: var(--bs-gray-700);
+}
+
+.load-position-legend.taken {
+    background: var(--bs-primary);
+}
+
+/* Login Page */
+.login-container {
+    max-width: 420px;
+    margin: 2rem auto;
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-logo img {
+    max-width: 180px;
+    height: auto;
+}
+
+/* Custom Toggles */
+.toggle-password {
+    cursor: pointer;
+}
+
+/* Badge colors */
+.badge-pending {
+    background-color: var(--bs-warning);
+    color: var(--bs-dark);
+}
+
+.badge-in-progress {
+    background-color: var(--bs-info);
+    color: var(--bs-dark);
+}
+
+.badge-repaired {
+    background-color: var(--bs-success);
+}
+
+.badge-active {
+    background-color: var(--bs-success);
+}
+
+.badge-inactive {
+    background-color: var(--bs-secondary);
+}
+
+.badge-maintenance {
+    background-color: var(--bs-warning);
+    color: var(--bs-dark);
+}
+
+.badge-in-transit {
+    background-color: var(--bs-info);
+    color: var(--bs-dark);
+}
+
+.badge-delivered {
+    background-color: var(--bs-success);
+}
+
+/* Custom Alert */
+.alert-float {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 350px;
+}
+
+/* User roles */
+.role-admin {
+    color: var(--bs-danger);
+}
+
+.role-moderator {
+    color: var(--bs-warning);
+}
+
+.role-driver {
+    color: var(--bs-info);
+}
+
+/* Print styles - hide navbar and buttons */
+@media print {
+    .sidebar, .navbar, .btn, .no-print {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}

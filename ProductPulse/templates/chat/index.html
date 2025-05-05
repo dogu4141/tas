@@ -1,0 +1,785 @@
+{% extends 'base.html' %}
+
+{% block title %}Mesajlar - Taşdanlar Otomotiv{% endblock %}
+
+{% block page_title %}Mesajlar{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messageSearchModal">
+    <i class="bi bi-search"></i> Arama
+</button>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<style>
+    /* WhatsApp 2023 güncel görünüm için değişkenler */
+    :root {
+        --wa-teal: #00a884;
+        --wa-teal-dark: #008069;
+        --wa-green-light: #25D366;
+        --wa-light-green: #d9fdd3;
+        --wa-bg: #efeae2;
+        --wa-bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100'%3E%3Cg stroke-width='0' stroke='%23cfccc4' fill='%23cfccc4' opacity='0.08'%3E%3Crect x='0' y='0' width='200' height='100'%3E%3C/rect%3E%3Crect x='200' y='0' width='200' height='100'%3E%3C/rect%3E%3Crect x='400' y='0' width='200' height='100'%3E%3C/rect%3E%3C/g%3E%3C/svg%3E");
+        --wa-message-grey: #F1F1F1;
+        --wa-text-grey: #111b21;
+        --wa-text-light-grey: #667781;
+        --wa-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+        --wa-unread: #00a884;
+        --wa-icon-color: #aebac1;
+    }
+    
+    /* WhatsApp tarzı başlık stilleri */
+    .wa-header-container {
+        background-color: var(--wa-teal-dark);
+    }
+    
+    .wa-main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        color: white;
+    }
+    
+    .wa-brand h5 {
+        font-weight: 600;
+    }
+    
+    .wa-menu-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .wa-action-button {
+        background: transparent;
+        border: none;
+        color: var(--wa-icon-color);
+        font-size: 1.2rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .wa-action-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    /* WhatsApp tarzı ana konteyner */
+    .chat-container {
+        height: calc(100vh - 200px);
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+        background-color: white;
+        border: 1px solid #d1d7db;
+    }
+    
+    .chat-tabs-content {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .tab-pane {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+        border: none;
+        box-shadow: none;
+        background-color: white;
+    }
+    
+    .card-body {
+        flex: 1;
+        overflow: hidden;
+        padding: 0 !important;
+        border: none;
+        background-color: white;
+    }
+    
+    .conversations-list, .groups-list {
+        height: 100%;
+        overflow-y: auto;
+    }
+    
+    /* WhatsApp tarzı konuşma öğeleri */
+    .conversation-item, .group-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f2f2f2;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+    }
+    
+    .conversation-item:hover, .group-item:hover {
+        background-color: #f0f2f5;
+    }
+    
+    .conversation-item.active, .group-item.active {
+        background-color: #e9ebee;
+    }
+    
+    .conversation-item::after, .group-item::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: calc(100% - 78px);
+        height: 1px;
+        background-color: #f2f2f2;
+        margin-left: 78px;
+    }
+    
+    /* WhatsApp tarzı avatar */
+    .conversation-avatar, .group-avatar {
+        width: 49px;
+        height: 49px;
+        border-radius: 50%;
+        background-color: #DFE5E7;
+        color: #979DA0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 600;
+        text-transform: uppercase;
+        flex-shrink: 0;
+        margin-right: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .group-avatar {
+        background-color: var(--wa-teal-dark);
+        color: white;
+    }
+    
+    .conversation-details, .group-details {
+        flex: 1;
+        overflow: hidden;
+        min-width: 0;
+    }
+    
+    /* WhatsApp tarzı isim ve mesaj stilleri */
+    .conversation-name, .group-name {
+        font-weight: 500;
+        font-size: 1rem;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #111B21;
+    }
+    
+    .conversation-last-message, .group-description {
+        font-size: 0.85rem;
+        color: #667781;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0;
+    }
+    
+    /* WhatsApp tarzı meta bilgiler */
+    .conversation-meta, .group-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-left: 8px;
+        min-width: 45px;
+    }
+    
+    .conversation-time, .group-members {
+        font-size: 0.75rem;
+        color: #667781;
+        margin-bottom: 5px;
+    }
+    
+    /* WhatsApp tarzı okunmamış mesaj rozeti */
+    .unread-badge {
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background-color: var(--wa-green-light);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+    }
+    
+    /* User status indicator */
+    .user-status {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        border: 2px solid white;
+    }
+    
+    .user-status.online {
+        background-color: #10b981;
+    }
+    
+    .user-status.offline {
+        background-color: #6c757d;
+    }
+    
+    .user-status.away {
+        background-color: #f59e0b;
+    }
+    
+    /* Search */
+    /* WhatsApp tarzı arama kutusu */
+    .search-box {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f2f2f2;
+        background-color: white;
+        position: relative;
+    }
+    
+    .search-input {
+        border-radius: 18px;
+        background-color: #f0f2f5;
+        border: none;
+        padding: 8px 15px 8px 40px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        box-shadow: none;
+        height: 36px;
+    }
+    
+    .search-input:focus {
+        box-shadow: none;
+        border: none;
+        outline: none;
+        background-color: #e9ecef;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 25px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #919191;
+        z-index: 1;
+    }
+    
+    /* Empty state */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 20px;
+        color: var(--chat-text-secondary);
+        text-align: center;
+        height: 100%;
+    }
+    
+    .empty-state i {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        color: var(--chat-border);
+    }
+    
+    /* Tabs - WhatsApp style */
+    .nav-tabs {
+        border-bottom: none;
+        padding: 0;
+        background-color: var(--wa-teal-dark);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 0;
+        padding: 16px 20px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: white;
+        background-color: transparent;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: white;
+        background-color: transparent;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: white;
+    }
+    
+    /* Region badges */
+    .region-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 4px;
+        background-color: rgba(0, 119, 182, 0.1);
+        color: var(--chat-primary);
+        margin-right: 5px;
+    }
+    
+    /* Search modal */
+    .message-search-modal .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .message-search-modal .modal-header {
+        background: linear-gradient(135deg, var(--chat-primary), var(--chat-secondary));
+        color: white;
+        border-bottom: none;
+        border-radius: 15px 15px 0 0;
+    }
+    
+    .message-search-modal .modal-title {
+        font-weight: 600;
+    }
+    
+    .message-search-modal .modal-body {
+        padding: 20px;
+    }
+    
+    .message-search-modal .form-label {
+        font-weight: 500;
+        color: #212529;
+    }
+    
+    .message-search-modal .form-control,
+    .message-search-modal .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .message-search-modal .form-control:focus,
+    .message-search-modal .form-select:focus {
+        border-color: var(--chat-primary);
+        box-shadow: 0 0 0 0.25rem rgba(0, 119, 182, 0.25);
+    }
+    
+    /* Action buttons */
+    .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s;
+    }
+    
+    .action-btn:hover {
+        background-color: var(--chat-primary);
+        color: white;
+        border-color: var(--chat-primary);
+    }
+    
+    /* Attachments */
+    .attachment-icon {
+        color: var(--chat-primary);
+        font-size: 14px;
+        margin-right: 5px;
+    }
+    
+    /* Tooltip styling */
+    .tooltip {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .tooltip .tooltip-inner {
+        background-color: #212529;
+        padding: 6px 12px;
+        border-radius: 6px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        max-width: 250px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Tabs -->
+    <div class="wa-header-container d-flex flex-column">
+        <!-- WhatsApp tarzı başlık ve menü -->
+        <div class="wa-main-header">
+            <div class="wa-brand">
+                <h5 class="mb-0">Taşdanlar Chat</h5>
+            </div>
+            <div class="wa-menu-actions">
+                <button class="wa-action-button" data-bs-toggle="tooltip" title="Ara">
+                    <i class="bi bi-search"></i>
+                </button>
+                <div class="dropdown d-inline-block">
+                    <button class="wa-action-button" type="button" id="newMessageMenu" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Yeni mesaj">
+                        <i class="bi bi-chat-left-text"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="newMessageMenu">
+                        {% for user in users %}
+                            {% if user.id != current_user.id %}
+                            <li><a class="dropdown-item" href="{{ url_for('chat.direct_message', user_id=user.id) }}">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ user.first_name|default(user.username, true) }}</span>
+                                    {% if user.role == 'admin' %}
+                                    <span class="badge bg-danger">Yönetici</span>
+                                    {% elif user.role == 'moderator' %}
+                                    <span class="badge bg-warning text-dark">Moderatör</span>
+                                    {% elif user.role == 'driver' %}
+                                    <span class="badge bg-success">Şoför</span>
+                                    {% endif %}
+                                </div>
+                            </a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% if current_user.role == 'admin' or current_user.role == 'moderator' %}
+                <div class="dropdown d-inline-block">
+                    <button class="wa-action-button" type="button" id="groupMenu" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Grup işlemleri">
+                        <i class="bi bi-people"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupMenu">
+                        <li><a class="dropdown-item" href="{{ url_for('chat.create_group') }}">
+                            <i class="bi bi-plus-circle me-2"></i> Yeni Grup Oluştur
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('chat.manage_groups') }}">
+                            <i class="bi bi-gear me-2"></i> Grupları Yönet
+                        </a></li>
+                    </ul>
+                </div>
+                {% endif %}
+                <button class="wa-action-button" data-bs-toggle="tooltip" title="Daha fazla seçenek" id="moreOptionsBtn">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sekmeler -->
+        <ul class="nav nav-tabs mb-0" id="chatTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="conversations-tab" data-bs-toggle="tab" data-bs-target="#conversations" type="button" role="tab" aria-controls="conversations" aria-selected="true">
+                    <i class="bi bi-chat-dots me-1"></i> Sohbetler
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">
+                    <i class="bi bi-people me-1"></i> Gruplar
+                </button>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Chat Tab Content -->
+    <div class="tab-content chat-tabs-content" id="chatTabsContent">
+        <!-- Conversations Tab -->
+        <div class="tab-pane fade show active" id="conversations" role="tabpanel" aria-labelledby="conversations-tab">
+            <div class="card">
+                <!-- Kart başlık alanını kaldırdık çünkü WhatsApp'ta böyle bir başlık yok -->
+                
+                <div class="search-box">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="form-control search-input" placeholder="Kullanıcı veya mesaj ara..." id="conversationSearch">
+                </div>
+                
+                <div class="card-body">
+                    {% if conversations|length > 0 %}
+                    <div class="conversations-list">
+                        {% for conversation in conversations %}
+                        <a href="{{ url_for('chat.direct_message', user_id=conversation.user.id) }}" class="conversation-item" data-user-id="{{ conversation.user.id }}">
+                            <div class="conversation-avatar">
+                                {% set initials = (conversation.user.first_name[0] if conversation.user.first_name else '') + (conversation.user.last_name[0] if conversation.user.last_name else '') %}
+                                {% if initials %}
+                                    {{ initials }}
+                                {% else %}
+                                    <i class="bi bi-person"></i>
+                                {% endif %}
+                                
+                                {% if conversation.user.work_status == 'active' %}
+                                <div class="user-status online"></div>
+                                {% elif conversation.user.work_status == 'break' %}
+                                <div class="user-status away"></div>
+                                {% else %}
+                                <div class="user-status offline"></div>
+                                {% endif %}
+                            </div>
+                            <div class="conversation-details">
+                                <div class="conversation-name">
+                                    {{ conversation.user.full_name }}
+                                    {% if conversation.user.role == 'admin' %}
+                                    <span class="badge bg-danger">Yönetici</span>
+                                    {% elif conversation.user.role == 'moderator' %}
+                                    <span class="badge bg-warning text-dark">Moderatör</span>
+                                    {% elif conversation.user.role == 'driver' %}
+                                    <span class="badge bg-success">Şoför</span>
+                                    {% endif %}
+                                </div>
+                                <div class="conversation-last-message">
+                                    {% if conversation.last_message %}
+                                        {% if conversation.last_message.sender_id == current_user.id %}
+                                        <span class="text-muted me-1">Siz:</span>
+                                        {% endif %}
+                                        
+                                        {% if conversation.last_message.has_attachment %}
+                                        <i class="bi bi-paperclip attachment-icon"></i>
+                                        {% endif %}
+                                        
+                                        {% if conversation.last_message.location_lat %}
+                                        <i class="bi bi-geo-alt attachment-icon"></i> Konum paylaşıldı
+                                        {% else %}
+                                        {{ conversation.last_message.content|truncate(35) }}
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">Henüz mesaj yok</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="conversation-meta">
+                                {% if conversation.last_message %}
+                                <span class="conversation-time">
+                                    {% if conversation.last_message.sent_at.date() == now.date() %}
+                                        {{ conversation.last_message.sent_at.strftime('%H:%M') }}
+                                    {% else %}
+                                        {{ conversation.last_message.sent_at.strftime('%d/%m') }}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                                
+                                {% if conversation.unread_count > 0 %}
+                                <span class="unread-badge">
+                                    {{ conversation.unread_count }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-chat-dots"></i>
+                        <h5>Henüz hiç mesajınız bulunmuyor</h5>
+                        <p class="text-muted">Yeni bir mesaj göndermek için "Yeni" butonunu kullanın.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Groups Tab -->
+        <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+            <div class="card">
+                <!-- WhatsApp stilinde kart başlığı olmaz, yerine aksiyon butonlarını sağ üst köşeye ekleyeceğiz -->
+                
+                <div class="search-box">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="form-control search-input" placeholder="Grup ara..." id="groupSearch">
+                </div>
+                
+                <div class="card-body">
+                    {% if groups|length > 0 %}
+                    <div class="groups-list">
+                        {% for group in groups %}
+                        <a href="{{ url_for('chat.group', group_id=group.id) }}" class="group-item" data-group-id="{{ group.id }}">
+                            <div class="group-avatar">
+                                {% set initials = group.name.split()|map('first')|join('')|upper %}
+                                {% if initials %}
+                                    {{ initials[:2] }}
+                                {% else %}
+                                    <i class="bi bi-people"></i>
+                                {% endif %}
+                            </div>
+                            <div class="group-details">
+                                <div class="group-name">
+                                    {{ group.name }}
+                                    {% if group.is_private %}
+                                    <i class="bi bi-lock-fill ms-1 text-muted" data-bs-toggle="tooltip" title="Özel grup"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="group-description">
+                                    {% if group.region %}
+                                    <span class="region-badge">{{ group.region }}</span>
+                                    {% endif %}
+                                    
+                                    {% if group.description %}
+                                        {{ group.description|truncate(35) }}
+                                    {% else %}
+                                        <span class="text-muted">Açıklama yok</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="group-meta">
+                                <span class="group-members" data-bs-toggle="tooltip" title="{{ group.members|length }} üye">
+                                    <i class="bi bi-people-fill"></i> {{ group.members|length }}
+                                </span>
+                                
+                                {% if group.unread_count > 0 %}
+                                <span class="unread-badge">
+                                    {{ group.unread_count }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-people"></i>
+                        <h5>Henüz hiç grup bulunmuyor</h5>
+                        <p class="text-muted">Yeni bir grup oluşturmak için "Yeni" butonunu kullanın.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade message-search-modal" id="messageSearchModal" tabindex="-1" aria-labelledby="messageSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageSearchModalLabel">
+                    <i class="bi bi-search me-2"></i>Mesaj Arama
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('chat.search') }}" method="GET">
+                    <div class="mb-3">
+                        <label for="search_term" class="form-label">Arama Terimi</label>
+                        <input type="text" class="form-control" id="search_term" name="search_term" placeholder="Mesaj içeriği, gönderen, vb...">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date_from" class="form-label">Başlangıç Tarihi</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_to" class="form-label">Bitiş Tarihi</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="search_type" class="form-label">Arama Tipi</label>
+                        <select class="form-select" id="search_type" name="search_type">
+                            <option value="content">Mesaj İçeriği</option>
+                            <option value="sender">Gönderen</option>
+                            <option value="group">Grup</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-2"></i>Ara
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                container: 'body',
+                boundary: 'window'
+            })
+        })
+        
+        // Search functionality for conversations
+        document.getElementById('conversationSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const conversations = document.querySelectorAll('.conversation-item');
+            
+            conversations.forEach(conversation => {
+                const name = conversation.querySelector('.conversation-name').textContent.toLowerCase();
+                const message = conversation.querySelector('.conversation-last-message').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || message.includes(searchTerm)) {
+                    conversation.style.display = 'flex';
+                } else {
+                    conversation.style.display = 'none';
+                }
+            });
+        });
+        
+        // Search functionality for groups
+        document.getElementById('groupSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const groups = document.querySelectorAll('.group-item');
+            
+            groups.forEach(group => {
+                const name = group.querySelector('.group-name').textContent.toLowerCase();
+                const description = group.querySelector('.group-description').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || description.includes(searchTerm)) {
+                    group.style.display = 'flex';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        });
+        
+        // Set default dates for search
+        const today = new Date();
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        
+        document.getElementById('date_to').valueAsDate = today;
+        document.getElementById('date_from').valueAsDate = lastMonth;
+    });
+</script>
+{% endblock %}

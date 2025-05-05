@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Yük Yönetimi{% endblock %}
+
+{% block page_title %}Yük Yönetimi{% endblock %}
+
+{% block page_actions %}
+{% if current_user.role in ['admin', 'moderator'] %}
+<a href="{{ url_for('loads.create_load') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> Yeni Yük
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Yük Listesi</h5>
+        <div>
+            <form class="filter-form d-flex" method="GET" action="{{ url_for('loads.index') }}">
+                <div class="input-group me-2" style="max-width: 250px;">
+                    <input type="text" class="form-control search-input" name="search" placeholder="Yük No, Hedef ara..." value="{{ search }}">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <select class="form-select" id="statusFilter" name="status" style="max-width: 150px;">
+                    <option value="" {% if not status %}selected{% endif %}>Tüm Durumlar</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Beklemede</option>
+                    <option value="in_transit" {% if status == 'in_transit' %}selected{% endif %}>Taşınıyor</option>
+                    <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>Teslim Edildi</option>
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if loads.items %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Yük No</th>
+                            <th>Hedef</th>
+                            <th>Araç Sayısı</th>
+                            <th>Durum</th>
+                            <th>Oluşturulma Tarihi</th>
+                            <th>Oluşturan</th>
+                            <th class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for load in loads.items %}
+                            <tr>
+                                <td>{{ load.load_number }}</td>
+                                <td>{{ load.destination or 'Belirtilmemiş' }}</td>
+                                <td>{{ load.load_items|length }}/8</td>
+                                <td>
+                                    {% if load.status == 'pending' %}
+                                        <span class="badge badge-pending">Beklemede</span>
+                                    {% elif load.status == 'in_transit' %}
+                                        <span class="badge badge-in-transit">Taşınıyor</span>
+                                    {% elif load.status == 'delivered' %}
+                                        <span class="badge badge-delivered">Teslim Edildi</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ load.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ load.creator.username if load.creator else 'Bilinmiyor' }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('loads.view_load', load_id=load.id) }}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Görüntüle
+                                        </a>
+                                        
+                                        {% if current_user.role in ['admin', 'moderator'] %}
+                                        <a href="{{ url_for('loads.edit_load', load_id=load.id) }}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Düzenle
+                                        </a>
+                                        
+                                        <form action="{{ url_for('loads.delete_load', load_id=load.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger" data-confirm="Bu yükü silmek istediğinizden emin misiniz?">
+                                                <i class="bi bi-trash"></i> Sil
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if loads.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('loads.index', page=loads.prev_num, search=search, status=status) }}">Önceki</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Önceki</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in loads.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == loads.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('loads.index', page=page_num, search=search, status=status) }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if loads.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('loads.index', page=loads.next_num, search=search, status=status) }}">Sonraki</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Sonraki</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% else %}
+            <div class="alert alert-info">
+                {% if search or status %}
+                    Arama kriterlerinize uygun yük bulunamadı. <a href="{{ url_for('loads.index') }}">Tüm yükleri görüntüleyin</a>.
+                {% else %}
+                    Henüz hiç yük oluşturulmamış. {% if current_user.role in ['admin', 'moderator'] %}Yeni yük oluşturmak için "Yeni Yük" butonuna tıklayın.{% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/loads.js') }}"></script>
+{% endblock %}

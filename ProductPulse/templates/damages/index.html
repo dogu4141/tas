@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Hasar Yönetimi{% endblock %}
+
+{% block page_title %}Hasar Yönetimi{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ url_for('damages.record_damage') }}" class="btn btn-primary me-2">
+        <i class="bi bi-plus-lg"></i> Yeni Hasar Kaydı
+    </a>
+    {% if current_user.role in ['admin', 'moderator'] %}
+    <a href="{{ url_for('damages.damage_types') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-list-check"></i> Hasar Tipleri
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-transparent">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Hasar Kayıtları</h5>
+            <div class="d-flex">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i>
+                        {% if status %}
+                            {{ {'pending': 'Beklemede', 'in_progress': 'İşlemde', 'repaired': 'Onarıldı'}[status] }}
+                        {% else %}
+                            Durum
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', search=search) }}">Tümü</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', status='pending', search=search) }}">Beklemede</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', status='in_progress', search=search) }}">İşlemde</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', status='repaired', search=search) }}">Onarıldı</a></li>
+                    </ul>
+                </div>
+                
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-lightning-charge"></i>
+                        {% if severity %}
+                            {{ {'minor': 'Hafif', 'moderate': 'Orta', 'severe': 'Ağır'}[severity] }}
+                        {% else %}
+                            Şiddet
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', status=status, search=search) }}">Tümü</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', severity='minor', status=status, search=search) }}">Hafif</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', severity='moderate', status=status, search=search) }}">Orta</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('damages.index', severity='severe', status=status, search=search) }}">Ağır</a></li>
+                    </ul>
+                </div>
+                
+                <form class="ms-2" action="{{ url_for('damages.index') }}" method="GET">
+                    {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+                    {% if severity %}<input type="hidden" name="severity" value="{{ severity }}">{% endif %}
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" placeholder="Ara..." name="search" value="{{ search }}">
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Araç</th>
+                        <th scope="col">Hasar Tipi</th>
+                        <th scope="col">Şiddet</th>
+                        <th scope="col">Durum</th>
+                        <th scope="col">Kaydeden</th>
+                        <th scope="col">Kayıt Tarihi</th>
+                        <th scope="col">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if damages.items %}
+                        {% for damage in damages.items %}
+                            <tr>
+                                <td>{{ damage.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=damage.vehicle.id) }}" class="link-secondary">
+                                        {{ damage.vehicle.brand }} {{ damage.vehicle.model }}<br>
+                                        <small class="text-muted">{{ damage.vehicle.chassis_number }}</small>
+                                    </a>
+                                </td>
+                                <td>{{ damage.damage_type.name }}</td>
+                                <td>
+                                    {% if damage.severity == 'minor' %}
+                                        <span class="badge bg-success">Hafif</span>
+                                    {% elif damage.severity == 'moderate' %}
+                                        <span class="badge bg-warning text-dark">Orta</span>
+                                    {% elif damage.severity == 'severe' %}
+                                        <span class="badge bg-danger">Ağır</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if damage.status == 'pending' %}
+                                        <span class="badge badge-pending">Beklemede</span>
+                                    {% elif damage.status == 'in_progress' %}
+                                        <span class="badge badge-in-progress">İşlemde</span>
+                                    {% elif damage.status == 'repaired' %}
+                                        <span class="badge badge-repaired">Onarıldı</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ damage.recorder.username if damage.recorder else "-" }}</td>
+                                <td>{{ damage.recorded_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('damages.view_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if current_user.role in ['admin', 'moderator'] %}
+                                    <a href="{{ url_for('damages.edit_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-3">Hasar kaydı bulunamadı.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if damages.pages > 1 %}
+    <div class="card-footer bg-transparent">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {{ 'disabled' if damages.page == 1 else '' }}">
+                    <a class="page-link" href="{{ url_for('damages.index', page=damages.prev_num, search=search, status=status, severity=severity) if damages.has_prev else '#' }}">Önceki</a>
+                </li>
+                
+                {% for page_num in damages.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == damages.page else '' }}">
+                            <a class="page-link" href="{{ url_for('damages.index', page=page_num, search=search, status=status, severity=severity) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {{ 'disabled' if damages.page == damages.pages else '' }}">
+                    <a class="page-link" href="{{ url_for('damages.index', page=damages.next_num, search=search, status=status, severity=severity) if damages.has_next else '#' }}">Sonraki</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

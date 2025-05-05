@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Taşdanlar Otomotiv - Araç Girişi{% endblock %}
+
+{% block page_title %}Araç Girişi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Araç Giriş Kaydı Oluştur</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('vehicles.vehicle_entry') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="chassis_number" class="form-label required-label">{{ form.chassis_number.label.text }}</label>
+                        <div class="input-group">
+                            {{ form.chassis_number(class="form-control chassis-input", placeholder="Şasi numarası girin") }}
+                            <button type="button" class="btn btn-outline-secondary" id="scanBtn">
+                                <i class="bi bi-upc-scan"></i> Tara
+                            </button>
+                        </div>
+                        {% if form.chassis_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.chassis_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="driver_id" class="form-label required-label">{{ form.driver_id.label.text }}</label>
+                        {{ form.driver_id(class="form-select") }}
+                        {% if form.driver_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.driver_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="yard" class="form-label">{{ form.yard.label.text }}</label>
+                        {{ form.yard(class="form-control", placeholder="Yükleme sahası girin") }}
+                        {% if form.yard.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.yard.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="entry_time" class="form-label">Giriş Zamanı</label>
+                        <input type="text" class="form-control" id="entry_time" value="{{ now.strftime('%d/%m/%Y %H:%M') }}" disabled>
+                        <small class="text-muted">Giriş zamanı otomatik olarak kaydedilecektir</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">{{ form.notes.label.text }}</label>
+                        {{ form.notes(class="form-control", placeholder="Notlar girin", rows=3) }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.notes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3" id="vehicleInfo" style="display: none;">
+                <h6 class="alert-heading">Araç Bilgileri</h6>
+                <p id="vehicleInfoText"></p>
+            </div>
+            
+            <div class="mt-3">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('vehicles.index') }}" class="btn btn-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vehicles.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chassisInput = document.getElementById('chassis_number');
+        const vehicleInfo = document.getElementById('vehicleInfo');
+        const vehicleInfoText = document.getElementById('vehicleInfoText');
+        const scanBtn = document.getElementById('scanBtn');
+        
+        // Handle chassis input blur (when user finishes typing)
+        if (chassisInput) {
+            chassisInput.addEventListener('blur', function() {
+                fetchVehicleInfo();
+            });
+        }
+        
+        // Handle scan button click
+        if (scanBtn) {
+            scanBtn.addEventListener('click', function() {
+                // In a real implementation, this would interface with a barcode scanner
+                // For now, let's simulate scanning by focusing the input
+                chassisInput.focus();
+                alert('Barkod tarayıcısını kullanarak şasi numarasını tarayın');
+            });
+        }
+        
+        function fetchVehicleInfo() {
+            const chassis = chassisInput.value.trim();
+            if (!chassis) {
+                vehicleInfo.style.display = 'none';
+                return;
+            }
+            
+            fetch(`/vehicles/api/vehicle-info?chassis_number=${chassis}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const vehicle = data.vehicle;
+                        vehicleInfoText.innerHTML = `
+                            <strong>Marka:</strong> ${vehicle.brand} | 
+                            <strong>Model:</strong> ${vehicle.model} | 
+                            <strong>Plaka:</strong> ${vehicle.license_plate || 'Belirtilmemiş'} | 
+                            <strong>Durum:</strong> ${getStatusText(vehicle.status)}
+                        `;
+                        vehicleInfo.style.display = 'block';
+                    } else {
+                        vehicleInfoText.innerHTML = `<em>Uyarı: Araç sistemde bulunamadı. Lütfen şasi numarasını kontrol edin.</em>`;
+                        vehicleInfo.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching vehicle info:', error);
+                    vehicleInfo.style.display = 'none';
+                });
+        }
+        
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return 'Aktif';
+                case 'inactive': return 'Pasif';
+                case 'maintenance': return 'Bakımda';
+                default: return status;
+            }
+        }
+    });
+</script>
+{% endblock %}

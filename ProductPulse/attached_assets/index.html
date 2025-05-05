@@ -1,0 +1,592 @@
+	<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasar Kayıt Sistemi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body class="light-theme">
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Hasar Kayıt</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <button id="dashboardBtn" class="nav-item"><i class="fas fa-tachometer-alt"></i> Gösterge Paneli</button>
+                <button id="addRecordBtn" class="nav-item"><i class="fas fa-plus"></i> Kayıt Ekle</button>
+                <button id="manageDriversBtn" class="nav-item"><i class="fas fa-users"></i> Şoför Yönetimi</button>
+                <button id="manageModelsBtn" class="nav-item"><i class="fas fa-car"></i> Model Yönetimi</button>
+                <button id="historyBtn" class="nav-item"><i class="fas fa-history"></i> Geçmiş</button>
+                <button id="analyticsBtn" class="nav-item"><i class="fas fa-chart-bar"></i> Analiz</button>
+                <button id="exportExcelBtn" class="nav-item"><i class="fas fa-file-export"></i> Excel'e Aktar</button>
+                <button id="exportCsvBtn" class="nav-item"><i class="fas fa-file-csv"></i> CSV'ye Aktar</button>
+                <button id="clearRangeBtn" class="nav-item"><i class="fas fa-calendar-times"></i> Tarih Aralığı Temizle</button>
+                <button id="backupBtn" class="nav-item"><i class="fas fa-download"></i> Verileri Yedekle</button>
+                <button id="restoreBtn" class="nav-item"><i class="fas fa-upload"></i> Verileri Geri Yükle</button>
+                <button id="toggleThemeBtn" class="nav-item"><i class="fas fa-adjust"></i> Tema Değiştir</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="mainTitle">Gösterge Paneli</h1>
+                <div class="header-actions">
+                    <span id="message" class="message"></span>
+                    <button id="refreshBtn" class="action-btn"><i class="fas fa-sync-alt"></i> Yenile</button>
+                    <button id="printBtn" class="action-btn" title="Yazdır">
+                        <i class="fas fa-print"></i> Yazdır
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="content-section">
+                <div class="card">
+                    <h3>Gösterge Paneli</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Toplam Kayıt</h4>
+                            <p id="totalRecords">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Toplam Şoför</h4>
+                            <p id="totalDrivers">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Toplam Model</h4>
+                            <p id="totalModels">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Filtrelenmiş Kayıtlar</h4>
+                            <p id="filteredRecords">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>En Hasarlı Model</h4>
+                            <p id="mostDamagedModel">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>En Hasarlı Şoför</h4>
+                            <p id="mostDamagedDriver">-</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Record Section -->
+            <section id="addRecordSection" class="content-section" style="display: none;">
+                <div class="card">
+                    <h3>Yeni Kayıt Ekle</h3>
+                    <form id="recordForm" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="txtDate" class="required">Tarih</label>
+                                <input type="date" id="txtDate" />
+                            </div>
+                            <div class="form-group">
+                                <label for="txtChassis" class="required">Şasi No</label>
+                                <input type="text" id="txtChassis" placeholder="Şasi Numarası" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cmbModel" class="required">Model</label>
+                                <select id="cmbModel">
+                                    <option value="">Model Seçiniz</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cmbDriver">Şoför</label>
+                                <select id="cmbDriver">
+                                    <option value="">Şoför Seçiniz</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="groupList" class="required">Grup Seçiniz</label>
+                                <select id="groupList" name="group">
+                                    <option value="">Grup Seçiniz</option>
+                                    <option value="35">1 - ANTEN/ANTEN ÜNİTESİ</option>
+                                    <option value="36">2 - AKÜ</option>
+                                    <option value="37">3 - TAMPON/KAPAK/DIŞ, ÖN</option>
+                                    <option value="38">4 - TAMPON/KAPAK/DIŞ, ARKA</option>
+                                    <option value="39">5 - TAMPON KORUMASI/ŞERİDİ, ÖN</option>
+                                    <option value="40">6 - TAMPON KORUMASI/ŞERİDİ, ARKA</option>
+                                    <option value="41">7 - BAGAJ KAPISI – SAĞ</option>
+                                    <option value="42">8 - BAGAJ KAPISI – SOL</option>
+                                    <option value="43">9 - BAGAJ KAPISI (SÜRGÜLÜ) SAĞ/SOL</option>
+                                    <option value="44">10 - KAPI, SOL ÖN</option>
+                                    <option value="45">11 - KAPI, SOL ARKA</option>
+                                    <option value="46">12 - KAPI, SAĞ ÖN</option>
+                                    <option value="47">13 - KAPI, SAĞ ARKA</option>
+                                    <option value="48">14 - ÇAMURLUK, SOL ÖN</option>
+                                    <option value="49">15 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SOL</option>
+                                    <option value="50">16 - ÇAMURLUK, SAĞ ÖN</option>
+                                    <option value="51">17 - TEKERLEK ÜSTÜ PANEL VEYA BAGAJ YERİ, SAĞ</option>
+                                    <option value="52">18 - ÖN ZEMİN PASPASLARI</option>
+                                    <option value="53">19 - ARKA ZEMİN PASPASLARI</option>
+                                    <option value="54">20 - ÖN CAM</option>
+                                    <option value="55">21 - ARKA CAM</option>
+                                    <option value="56">22 - ÖN IZGARA</option>
+                                    <option value="57">23 - AKSESUAR ÇANTASI/KUTUSU</option>
+                                    <option value="58">24 - FAR/KAPAK/SİNYAL LAMBASI</option>
+                                    <option value="59">25 - FARLAR, SİS/SÜRÜŞ/SPOT LT.</option>
+                                    <option value="60">26 - İÇ TAVAN DÖŞEMESİ</option>
+                                    <option value="61">27 - KAPUT</option>
+                                    <option value="62">28 - ANAHTARLAR</option>
+                                    <option value="63">29 - ANAHTARSIZ UZAKTAN KUMANDA</option>
+                                    <option value="64">30 - AYNA, DIŞ, SOL</option>
+                                    <option value="65">31 - AYNA, DIŞ, SAĞ</option>
+                                    <option value="66">32 - AĞIR HASAR (ORİJİNAL PARÇA DEĞİŞİMİ)</option>
+                                    <option value="67">33 - ÖN MULTİMEDYA</option>
+                                    <option value="68">34 - ARKA MULTİMEDYA</option>
+                                    <option value="69">35 - SALINCAK PANELİ / DIŞ EŞİK SOL</option>
+                                    <option value="70">36 - SALINCAK PANELİ / DIŞ EŞİK SAĞ</option>
+                                    <option value="71">37 - TAVAN</option>
+                                    <option value="72">38 - BİNİŞ PLATFORMU/BASAMAĞI, SOL</option>
+                                    <option value="73">39 - BİNİŞ PLATFORMU/BASAMAĞI, SAĞ</option>
+                                    <option value="74">40 - YEDEK LASTİK</option>
+                                    <option value="75">41 - ELEKTRİKLİ ARAÇ ŞARJ KABLOSU</option>
+                                    <option value="76">42 - ALT PANEL/ÖN SPOİLER</option>
+                                    <option value="77">44 - BENZİN DEPOSU</option>
+                                    <option value="78">45 - ARKA LAMBA/DONANIM</option>
+                                    <option value="79">46 - KAMYON KABİNİ, ARKA</option>
+                                    <option value="80">48 - SOL ÖN İÇ DÖŞEME PANELİ</option>
+                                    <option value="81">50 - SAĞ ÖN İÇ DÖŞEME PANELİ</option>
+                                    <option value="82">51 - BRANDA</option>
+                                    <option value="83">52 - ARKA KAPAK/BAGAJ KAPAĞI/HATCHBACK</option>
+                                    <option value="84">53 - TAVAN PENCERESİ/CAM TAVAN</option>
+                                    <option value="85">54 - ALT TAKIM/DİĞER</option>
+                                    <option value="86">55 - YÜK ALANI, DİĞER</option>
+                                    <option value="87">56 - AÇILIR TAVAN</option>
+                                    <option value="88">57 - JANT KAPAKLARI</option>
+                                    <option value="89">58 - RADYO HOPARLÖRLERİ</option>
+                                    <option value="90">59 - SİLECEKLER, HEPSİ</option>
+                                    <option value="91">60 - TAKOZLAR</option>
+                                    <option value="92">61 - BAGAJ İÇİ, KAMYONET</option>
+                                    <option value="93">62 - TÜM ARAÇ</option>
+                                    <option value="94">63 - RAYLAR, KAMYON KASASI/IŞIK ÇUBUĞU</option>
+                                    <option value="95">64 - DEFLEKTÖR/SPOİLER, ARKA</option>
+                                    <option value="96">65 - BAGAJ RAFI / ŞERİTLER / DAMLAMA RAYI</option>
+                                    <option value="97">66 - GÖSTERGE PANELİ</option>
+                                    <option value="98">67 - ÇAKMAK/KÜL TABLASI</option>
+                                    <option value="99">68 - PASPAS, ÖN</option>
+                                    <option value="100">69 - ORTA DİREK, SAĞ</option>
+                                    <option value="101">70 - ORTA DİREK, SOL</option>
+                                    <option value="102">71 - KÖŞE DİREĞİ</option>
+                                    <option value="103">72 - SOL ÖN LASTİK</option>
+                                    <option value="104">73 - SOL ÖN JANT</option>
+                                    <option value="105">74 - SOL ARKA LASTİK</option>
+                                    <option value="106">75 - SOL ARKA JANT</option>
+                                    <option value="107">76 - SAĞ ARKA LASTİK</option>
+                                    <option value="108">77 - SAĞ ARKA JANT</option>
+                                    <option value="109">78 - SAĞ ÖN LASTİK</option>
+                                    <option value="110">79 - SAĞ ÖN JANT</option>
+                                    <option value="111">80 - BAŞLIK</option>
+                                    <option value="112">81 - GAZ/AKÜ KAPAĞI/YAKIT KAPAĞI</option>
+                                    <option value="113">82 - ÇAMURLUK-ARKA, SOL</option>
+                                    <option value="114">83 - ÇAMURLUK-ARKA, SAĞ</option>
+                                    <option value="115">84 - ALETLER/KRİKO/STEPNE MONTAJI VE KİLİDİ</option>
+                                    <option value="116">85 - SD/MULTİMEDYA KİTİ</option>
+                                    <option value="117">86 - PARK SONAR SİSTEMİ</option>
+                                    <option value="118">89 - RÖMORK BAĞLANTISI, ÇEKME KANCALARI</option>
+                                    <option value="119">90 - ŞASİ</option>
+                                    <option value="120">91 - EGZOZ SİSTEMİ</option>
+                                    <option value="121">92 - PLAKA ÇERÇEVESİ</option>
+                                    <option value="122">93 - DİREKSİYON SİMİDİ/HAVA YASTIĞI</option>
+                                    <option value="123">94 - KOLTUK, SOL ÖN</option>
+                                    <option value="124">95 - KOLTUK, SAĞ ÖN</option>
+                                    <option value="125">96 - KOLTUK, ARKA</option>
+                                    <option value="126">97 - PASPAS, ARKA</option>
+                                    <option value="127">98 - İÇ DÖŞEME</option>
+                                    <option value="128">99 - MOTOR BÖLMESİ, DİĞER</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="descriptionList" class="required">Tanım Seçiniz</label>
+                                <select id="descriptionList" name="description">
+                                    <option value="">Tanım Seçiniz</option>
+                                    <option value="760">1 - BÜKÜLME</option>
+                                    <option value="761">2 - ÇALIŞAMAZ DURUMDA</option>
+                                    <option value="762">3 - KESİK</option>
+                                    <option value="763">4 - EZİK - BOYA VEYA KROM HASARLI</option>
+                                    <option value="764">5 - ÇENTİKLİ - CAM VEYA PANEL KENARI İÇİN DEĞİL</option>
+                                    <option value="765">6 - ÇATLAK - CAM İÇİN DEĞİL</option>
+                                    <option value="766">7 - OYULMUŞ</option>
+                                    <option value="767">8 - EKSİK</option>
+                                    <option value="768">9 - AŞINMIŞ</option>
+                                    <option value="769">10 - LEKELİ VEYA KİRLİ - İÇ MEKAN</option>
+                                    <option value="770">11 - DELİNMİŞ</option>
+                                    <option value="771">12 - ÇİZİK - CAM İÇİN DEĞİL</option>
+                                    <option value="772">13 - YIRTIK</option>
+                                    <option value="773">14 - EZİK BOYA/KROM HASARSIZ</option>
+                                    <option value="774">15 - TAM GÖVDE ARAÇ ÖRTÜSÜ – HASARLI</option>
+                                    <option value="775">16 - TERMAL OLAY/YANGIN</option>
+                                    <option value="776">18 - KALIPLAMA/AMBLEM/HAVA ŞERİDİ HASARLI</option>
+                                    <option value="777">19 - KALIPLAMA/AMBLEM/HAVA ŞERİDİ GEVŞEK</option>
+                                    <option value="778">20 - ÇATLAK CAM</option>
+                                    <option value="779">21 - KIRIK CAM</option>
+                                    <option value="780">22 - YONTULMUŞ CAM</option>
+                                    <option value="781">23 - ÇİZİK CAM</option>
+                                    <option value="782">24 - İŞARET IŞIĞI HASARLI</option>
+                                    <option value="783">25 - ÇIKARTMA/BOYA ÇİZGİSİ HASARLI</option>
+                                    <option value="784">29 - KİRLENME, DIŞ</option>
+                                    <option value="785">30 - SIVI DÖKÜLMESİ, DIŞ</option>
+                                    <option value="786">31 - HIRSIZLIK/VANDALİZM</option>
+                                    <option value="787">34 - KIRIK PANEL KENARI</option>
+                                    <option value="788">36 - YANLIŞ PARÇA VEYA SEÇENEK FATURA EDİLDİĞİ GİBİ DEĞİL</option>
+                                    <option value="789">37 - DONANIM - HASARLI</option>
+                                    <option value="790">38 - DONANIM - GEVŞEK, EKSİK</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="levelList" class="required">Seviye Seçiniz</label>
+                                <select id="levelList" name="level">
+                                    <option value="">Seviye Seçiniz</option>
+                                    <option value="1">1 - 1" uzunluğa / çapa kadar olan hasarlar - 2,5 cm'den az</option>
+                                    <option value="2">2 - 1"den 3"e kadar uzunluktaki / çaplı hasarlar - 2,5 cm'den 7,5 cm'ye kadar</option>
+                                    <option value="3">3 - 3"den 6"ya kadar uzunluktaki / çaplı hasarlar - 7,5 cm'den 15 cm'ye kadar</option>
+                                    <option value="4">4 - 6"den 12"ye kadar uzunluktaki / çaptaki hasarlar – 15 cm'den 30 cm'ye kadar</option>
+                                    <option value="5">5 - 12" uzunluğundan / çapından büyük hasarlar – 30 cm ve üzeri</option>
+                                    <option value="6">6 - Eksik/Büyük Hasar</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="txtExplanation">Açıklama (Opsiyonel)</label>
+                                <textarea id="txtExplanation" placeholder="Açıklama"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="txtNotes">Notlar (Opsiyonel)</label>
+                                <textarea id="txtNotes" placeholder="Kayıt için notlar"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="locationMarker">Hasar Yeri</label>
+                                <button type="button" id="selectLocationBtn" class="btn btn-secondary">Yer Seç</button>
+                                <input type="hidden" id="locationX" name="locationX">
+                                <input type="hidden" id="locationY" name="locationY">
+                                <div id="locationPreview" style="margin-top: 6px;"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Ekle</button>
+                            <button type="button" id="updateRecordBtn" class="btn btn-secondary" style="display: none;">Güncelle</button>
+                            <button type="button" id="copyRecordBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> Kopyala</button>
+                            <button type="button" id="clearInputsBtn" class="btn btn-neutral">Temizle</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Manage Drivers Section -->
+            <section id="manageDriversSection" class="content-section" style="display: none;">
+                <div class="card">
+                    <h3>Şoför Yönetimi</h3>
+                    <div class="management-actions">
+                        <button id="showAddDriverModalBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Şoför Ekle</button>
+                        <button id="showDeleteDriverModalBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Şoför Sil</button>
+                        <div class="items-per-page">
+                            <label for="driversPerPage">Göster:</label>
+                            <select id="driversPerPage">
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="all">Hepsi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="management-list">
+                        <h4>Kayıtlı Şoförler</h4>
+                        <ul id="driverList"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manage Models Section -->
+            <section id="manageModelsSection" class="content-section" style="display: none;">
+                <div class="card">
+                    <h3>Model Yönetimi</h3>
+                    <div class="management-actions">
+                        <button id="showAddModelModalBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Model Ekle</button>
+                        <div class="items-per-page">
+                            <label for="modelsPerPage">Göster:</label>
+                            <select id="modelsPerPage">
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="all">Hepsi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="management-list">
+                        <h4>Kayıtlı Modeller</h4>
+                        <ul id="modelList"></ul>
+                    </div>
+                </div>
+            </section>
+
+<!-- History Section -->
+<section id="historySection" class="content-section" style="display: none;">
+    <div class="card">
+        <div class="management-actions">
+            <h3>Geçmiş İşlemler</h3>
+            <div class="items-per-page">
+                <label for="logsPerPage">Göster:</label>
+                <select id="logsPerPage">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="all">Hepsi</option>
+                </select>
+            </div>
+        </div>
+        <div class="management-list">
+            <div class="table-wrapper">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>İşlem</th>
+                            <th>Detay</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+            <!-- Analytics Section -->
+            <section id="analyticsSection" class="content-section" style="display: none;">
+                <div class="card">
+                    <h3>Hasar Analizi</h3>
+                    <div class="analytics-filter">
+                        <select id="analyticsType">
+                            <option value="current">Mevcut Hasarlar</option>
+                            <option value="drivers">Şoför Bazında</option>
+                            <option value="models">Model Bazında</option>
+                        </select>
+                        <select id="analyticsPeriod">
+                            <option value="daily">Gün</option>
+                            <option value="weekly">Hafta</option>
+                            <option value="monthly">Ay</option>
+                        </select>
+                    </div>
+                    <canvas id="damageChart" height="500" width="1000"></canvas>
+                </div>
+            </section>
+
+            <!-- Records Table -->
+            <section class="card">
+                <h3>Kayıtlar</h3>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="quickSearch">Hızlı Arama</label>
+                        <input type="text" id="quickSearch" placeholder="Tüm alanlarda ara..." />
+                    </div>
+                    <div class="filter-group">
+                        <label>Başlangıç Tarihi</label>
+                        <input type="date" id="txtFilterDateStart" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Bitiş Tarihi</label>
+                        <input type="date" id="txtFilterDateEnd" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Şasi No</label>
+                        <input type="text" id="txtFilterChassis" placeholder="Şasi Filtresi" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Model</label>
+                        <select id="cmbFilterModel">
+                            <option value="">Tümü</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Şoför</label>
+                        <select id="cmbFilterDriver">
+                            <option value="">Tümü</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterPeriod">Zaman Filtresi</label>
+                        <select id="filterPeriod">
+                            <option value="">Zaman Filtresi</option>
+                            <option value="today">Bugün</option>
+                            <option value="yesterday">Dün</option>
+                            <option value="last7days">Son 7 Gün</option>
+                            <option value="thismonth">Bu Ay</option>
+                        </select>
+                    </div>
+                    <div class="filter-buttons">
+                        <button id="bulkDeleteBtn" class="btn btn-danger">Seçilenleri Sil</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllRecords"></th>
+                                <th data-sort="date">Tarih</th>
+                                <th data-sort="chassisNumber">Şasi No</th>
+                                <th data-sort="model">Model</th>
+                                <th data-sort="driverInfo">Şoför</th>
+                                <th data-sort="group">Grup</th>
+                                <th data-sort="description">Tanım</th>
+                                <th data-sort="level">Seviye</th>
+                                <th data-sort="explanation">Açıklama</th>
+                                <th data-sort="notes">Notlar</th>
+                                <th data-sort="location">Yer</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <div id="addDriverModal" class="modal">
+            <div class="modal-content">
+                <h3>Şoför Ekle</h3>
+                <form class="modal-form">
+                    <div class="form-group">
+                        <label for="txtPlate" class="required">Plaka</label>
+                        <input type="text" id="txtPlate" placeholder="Plaka" />
+                    </div>
+                    <div class="form-group">
+                        <label for="txtFullName" class="required">İsim Soyisim</label>
+                        <input type="text" id="txtFullName" placeholder="İsim Soyisim" />
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-primary" id="saveDriverBtn">Kaydet</button>
+                        
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="deleteDriverModal" class="modal">
+            <div class="modal-content">
+                <h3>Şoför Sil</h3>
+                <form class="modal-form">
+                    <div class="form-group">
+                        <label for="cmbDeleteDriver">Şoför Seç</label>
+                        <select id="cmbDeleteDriver"></select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-danger" id="deleteDriverBtn">Sil</button>
+                        <button type="button" class="btn btn-neutral" id="closeDeleteDriverModalBtn">Kapat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="addModelModal" class="modal">
+            <div class="modal-content">
+                <h3>Model Ekle</h3>
+                <form class="modal-form">
+                    <div class="form-group">
+                        <label for="txtModel" class="required">Model Adı</label>
+                        <input type="text" id="txtModel" placeholder="Model Adı" />
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-primary" id="saveModelBtn">Kaydet</button>
+                        <button type="button" class="btn btn-neutral" id="closeAddModelModalBtn">Kapat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="recordDetailModal" class="modal">
+            <div class="modal-content">
+                <h3>Kayıt Detayları</h3>
+                <div id="recordDetailContent"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-neutral" id="closeRecordDetailModalBtn">Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="clearRangeModal" class="modal">
+            <div class="modal-content">
+                <h3>Tarih Aralığını Temizle</h3>
+                <form class="modal-form">
+                    <div class="form-group">
+                        <label for="clearStartDate">Başlangıç Tarihi</label>
+                        <input type="date" id="clearStartDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="clearEndDate">Bitiş Tarihi</label>
+                        <input type="date" id="clearEndDate" />
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-danger" id="confirmClearRangeBtn">Temizle</button>
+                        <button type="button" class="btn btn-neutral" id="closeClearRangeModalBtn">Kapat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="editHistoryModal" class="modal">
+            <div class="modal-content">
+                <h3>Kayıt Düzenleme Geçmişi</h3>
+                <div id="editHistoryContent"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-neutral" id="closeEditHistoryModalBtn">Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yer Seçimi Popup -->
+        <div id="locationSelectModal" class="modal">
+            <div class="modal-content">
+                <h3>Hasar Yeri Seç</h3>
+                <div class="car-image-container" style="position: relative;">
+                    <img id="carImage" src="https://ares.rsservis.com.tr/css/otoekspertiz/img/kaporta_svg/9.svg" alt="Car Image" style="width: 100%; height: auto;" />
+                    <div id="markerContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="saveLocationBtn" class="btn btn-primary">Kaydet</button>
+                    <button type="button" id="closeLocationModalBtn" class="btn btn-neutral">Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yazdırma Ön İzleme Modal -->
+        <div id="printPreviewModal" class="modal">
+            <div class="modal-content print-preview-content">
+                <h3>Yazdırma Ön İzleme</h3>
+                <div class="print-preview" id="printPreview"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="printRecords()">Yazdır</button>
+                    <button type="button" class="btn btn-neutral" onclick="closeModal('printPreviewModal')">Kapat</button>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="restoreFileInput" style="display: none;" accept=".json" />
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 - Doğu</p>
+    </footer>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

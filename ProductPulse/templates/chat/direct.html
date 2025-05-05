@@ -1,0 +1,635 @@
+{% extends 'base.html' %}
+
+{% block title %}Mesajlar - {{ other_user.full_name }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<style>
+    /* WhatsApp benzeri chat stilleri */
+    :root {
+        --wa-teal: #128C7E;
+        --wa-teal-dark: #075E54;
+        --wa-green-light: #25D366;
+        --wa-light-green: #DCF8C6;
+        --wa-bg: #E5DDD5;
+        --wa-bg-pattern: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAACVBMVEUAAAD///93d3feClnkAAAAAnRSTlMAAHaTzTgAAAA0SURBVHgBnczBCQAgDEPRsCsNu9TBEUImipCh/+VFIHGoKZdUd2QA7lJQXZGred64EYD9D4UGBYomQJdnAAAAAElFTkSuQmCC");
+        --wa-message-grey: #F1F1F1;
+        --wa-message-tail: polygon(0% 0%, 100% 0%, 100% 100%, 25% 100%, 0% 70%);
+        --wa-message-tail-alt: polygon(0% 0%, 100% 0%, 100% 70%, 75% 100%, 0% 100%);
+        --wa-text-grey: #4A4A4A;
+        --wa-text-light-grey: #989898;
+    }
+
+    /* Güncel WhatsApp tarzı ana konteyner */
+    .whatsapp-chat {
+        height: calc(100vh - 140px);
+        background-color: #efeae2;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100'%3E%3Cg stroke-width='0' stroke='%23cfccc4' fill='%23cfccc4' opacity='0.08'%3E%3Crect x='0' y='0' width='200' height='100'%3E%3C/rect%3E%3Crect x='200' y='0' width='200' height='100'%3E%3C/rect%3E%3Crect x='400' y='0' width='200' height='100'%3E%3C/rect%3E%3C/g%3E%3C/svg%3E");
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #d1d7db;
+    }
+
+    .whatsapp-header {
+        background-color: #f0f2f5;
+        color: #111b21;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        z-index: 10;
+        border-bottom: 1px solid #e0e0e0;
+        height: 60px;
+    }
+
+    .whatsapp-header-return {
+        margin-right: 15px;
+        color: #54656f;
+        text-decoration: none;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+    
+    .whatsapp-header-return:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .wa-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #DDD;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-weight: bold;
+        color: var(--wa-teal-dark);
+    }
+
+    .wa-user-info {
+        flex: 1;
+    }
+
+    .wa-user-name {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .wa-user-status {
+        font-size: 13px;
+        opacity: 0.8;
+    }
+
+    .wa-header-actions {
+        display: flex;
+        gap: 15px;
+    }
+
+    .wa-header-actions i {
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    .wa-messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 16px 10px;
+    }
+
+    /* WhatsApp mesaj baloncukları */
+    .wa-message {
+        max-width: 65%;
+        margin-bottom: 2px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        clear: both;
+    }
+
+    .wa-message-incoming {
+        float: left;
+        background-color: white;
+        border-radius: 8px 8px 8px 0;
+        box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    }
+
+    .wa-message-outgoing {
+        float: right;
+        background-color: #d9fdd3;
+        border-radius: 8px 8px 0 8px;
+        box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    }
+
+    .wa-message-content {
+        padding: 6px 8px 0;
+        word-wrap: break-word;
+        color: #111b21;
+    }
+
+    .wa-message-text {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 14.2px;
+        line-height: 19px;
+    }
+
+    .wa-message-meta {
+        padding: 0 4px 4px 0;
+        display: flex;
+        justify-content: flex-end;
+        font-size: 11px;
+        color: #667781;
+        gap: 4px;
+        margin-top: 1px;
+    }
+
+    .wa-message-outgoing .wa-message-meta {
+        color: #667781;
+    }
+
+    .wa-message-timestamp {
+        align-self: flex-end;
+        margin-left: 4px;
+    }
+
+    .wa-message-status {
+        display: flex;
+        align-items: center;
+    }
+
+    .wa-message-status i {
+        font-size: 14px;
+    }
+
+    .wa-message-read {
+        color: #53bdeb;
+    }
+
+    .wa-attachment {
+        padding: 5px;
+    }
+
+    .wa-attachment img {
+        max-width: 100%;
+        border-radius: 5px;
+    }
+
+    .wa-attachment a {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 5px;
+        padding: 8px;
+        text-decoration: none;
+        color: var(--wa-teal);
+    }
+
+    .wa-location-map {
+        width: 100%;
+        height: 150px;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+
+    /* WhatsApp mesaj girişi alanı */
+    .wa-input-container {
+        background-color: #f0f2f5;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .wa-input-wrapper {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border-radius: 22px;
+        padding: 9px 12px;
+        flex: 1;
+        margin-right: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+    
+    .wa-action-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        color: #54656f;
+        cursor: pointer;
+        background: transparent;
+    }
+    
+    .wa-action-button:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .wa-input-emoji {
+        color: #54656f;
+        cursor: pointer;
+        font-size: 1.35rem;
+    }
+
+    .wa-input-attach {
+        color: #54656f;
+        cursor: pointer;
+        position: relative;
+        font-size: 1.35rem;
+    }
+
+    .wa-input-attach input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .wa-location-share {
+        color: #54656f;
+        cursor: pointer;
+        font-size: 1.35rem;
+    }
+
+    .wa-textarea {
+        border: none;
+        flex: 1;
+        resize: none;
+        font-family: inherit;
+        max-height: 100px;
+        padding: 0 8px;
+        background: transparent;
+        font-size: 15px;
+        line-height: 20px;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+    .wa-textarea:focus {
+        outline: none;
+    }
+
+    .wa-send-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #00a884;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .wa-send-button:hover {
+        background-color: #028e70;
+    }
+
+    .wa-send-button:disabled {
+        background-color: #e9edef;
+        color: #8696a0;
+    }
+
+    /* WhatsApp tarih gösterimi */
+    .wa-message-date {
+        text-align: center;
+        margin: 12px 0;
+        position: relative;
+    }
+
+    .wa-message-date span {
+        background-color: #e1f2ff;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12.5px;
+        color: #54656f;
+        box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+        display: inline-block;
+    }
+
+    /* WhatsApp daha fazla yükleme butonu */
+    .wa-load-more {
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .wa-load-more a {
+        background-color: white;
+        border-radius: 24px;
+        padding: 8px 16px;
+        font-size: 14px;
+        color: #00a884;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        gap: 6px;
+    }
+    
+    .wa-load-more a:hover {
+        background-color: #f5f5f5;
+    }
+
+    /* WhatsApp boş mesaj durumu */
+    .wa-no-messages {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #8696a0;
+        text-align: center;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
+    .wa-no-messages i {
+        font-size: 50px;
+        margin-bottom: 20px;
+        color: #d1d7db;
+    }
+    
+    .wa-no-messages p {
+        max-width: 300px;
+        margin: 0 auto 10px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+    
+    .wa-no-messages p:first-of-type {
+        font-weight: 500;
+        font-size: 16px;
+        color: #111b21;
+        margin-bottom: 8px;
+    }
+
+    /* WhatsApp mesaj baloncuğu kuyrukları - modern versiyonu */
+    .wa-message-incoming::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -8px;
+        width: 8px;
+        height: 13px;
+        background-color: white;
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    .wa-message-outgoing::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -8px;
+        width: 8px;
+        height: 13px;
+        background-color: #d9fdd3;
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .whatsapp-chat {
+            height: calc(100vh - 100px);
+            border-radius: 0;
+        }
+        
+        .wa-message {
+            max-width: 80%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="whatsapp-chat">
+    <div class="whatsapp-header">
+        <a href="{{ url_for('chat.index') }}" class="whatsapp-header-return">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="wa-avatar">
+            {% set initials = (other_user.first_name[0] if other_user.first_name else '') + (other_user.last_name[0] if other_user.last_name else '') %}
+            {% if initials %}
+                {{ initials }}
+            {% else %}
+                <i class="bi bi-person"></i>
+            {% endif %}
+        </div>
+        <div class="wa-user-info">
+            <h6 class="wa-user-name">{{ other_user.full_name }}</h6>
+            <div class="wa-user-status">
+                {% if other_user.role == 'driver' and other_user.license_plate %}
+                    Şoför - {{ other_user.license_plate }}
+                {% elif other_user.role == 'admin' %}
+                    Yönetici
+                {% elif other_user.role == 'moderator' %}
+                    Moderatör
+                {% endif %}
+                {% if other_user.work_status == 'active' %}
+                    • çevrimiçi
+                {% elif other_user.work_status == 'break' %}
+                    • mola
+                {% else %}
+                    • çevrimdışı
+                {% endif %}
+            </div>
+        </div>
+        <div class="wa-header-actions">
+            <i class="bi bi-search"></i>
+            <i class="bi bi-three-dots-vertical"></i>
+        </div>
+    </div>
+    
+    <div class="wa-messages-container">
+        {% if messages.items %}
+            {% if messages.has_prev %}
+                <div class="wa-load-more">
+                    <a href="{{ url_for('chat.direct_message', user_id=other_user.id, page=messages.prev_num) }}">
+                        <i class="bi bi-arrow-up"></i> Önceki mesajlar
+                    </a>
+                </div>
+            {% endif %}
+            
+            {% for message in messages.items %}
+                <div class="wa-message {% if message.sender_id == current_user.id %}wa-message-outgoing{% else %}wa-message-incoming{% endif %}">
+                    <div class="wa-message-content">
+                        <p class="wa-message-text">{{ message.content|nl2br }}</p>
+                        
+                        {% if message.has_attachment and message.attachments %}
+                            {% for attachment in message.attachments %}
+                                <div class="wa-attachment">
+                                    {% if attachment.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                        <img src="{{ attachment.file_path }}" alt="Görsel">
+                                    {% else %}
+                                        <a href="{{ attachment.file_path }}" target="_blank">
+                                            <i class="bi bi-file-earmark"></i>
+                                            <span>{{ attachment.file_name }}</span>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if message.location_lat and message.location_lng %}
+                            <div class="wa-location-map" data-lat="{{ message.location_lat }}" data-lng="{{ message.location_lng }}"></div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="wa-message-meta">
+                        <span class="wa-message-timestamp">{{ message.sent_at.strftime('%H:%M') }}</span>
+                        {% if message.sender_id == current_user.id %}
+                            <span class="wa-message-status">
+                                {% if message.is_read %}
+                                <i class="bi bi-check2-all wa-message-read"></i>
+                                {% else %}
+                                <i class="bi bi-check2"></i>
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            
+        {% else %}
+            <div class="wa-no-messages">
+                <i class="bi bi-chat-dots"></i>
+                <p>Henüz mesaj yok.</p>
+                <p>Bir mesaj göndererek konuşmaya başlayın.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <form action="{{ url_for('chat.send_message') }}" method="post" enctype="multipart/form-data" id="messageForm">
+        <input type="hidden" name="receiver_id" value="{{ other_user.id }}">
+        {{ form.csrf_token if form and form.csrf_token }}
+        
+        <!-- For location sharing -->
+        <input type="hidden" name="location_lat" id="location_lat">
+        <input type="hidden" name="location_lng" id="location_lng">
+        
+        <div class="wa-input-container">
+            <div class="wa-input-wrapper">
+                <div class="wa-input-emoji">
+                    <i class="bi bi-emoji-smile"></i>
+                </div>
+                
+                <div class="wa-input-attach">
+                    <i class="bi bi-paperclip"></i>
+                    <input type="file" name="attachment" id="attachment">
+                </div>
+                
+                <div class="wa-location-share" id="shareLocationBtn">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                
+                <textarea name="content" id="content" class="wa-textarea" placeholder="Mesaj yazın" required></textarea>
+            </div>
+            
+            <button type="submit" class="wa-send-button" id="sendButton">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-scroll to bottom of messages
+    const messagesContainer = document.querySelector('.wa-messages-container');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Resize textarea as content grows
+    const textarea = document.getElementById('content');
+    const sendButton = document.getElementById('sendButton');
+    
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        
+        // Enable/disable send button
+        sendButton.disabled = this.value.trim().length === 0;
+    });
+    
+    // Initialize leaflet maps for location messages
+    const locationMaps = document.querySelectorAll('.wa-location-map');
+    locationMaps.forEach(mapElement => {
+        const lat = parseFloat(mapElement.dataset.lat);
+        const lng = parseFloat(mapElement.dataset.lng);
+        
+        if (lat && lng) {
+            const map = L.map(mapElement).setView([lat, lng], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            
+            L.marker([lat, lng]).addTo(map);
+        }
+    });
+    
+    // Location sharing
+    const shareLocationBtn = document.getElementById('shareLocationBtn');
+    
+    shareLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            shareLocationBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            shareLocationBtn.style.color = '#25D366';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Set location in hidden inputs
+                    document.getElementById('location_lat').value = position.coords.latitude;
+                    document.getElementById('location_lng').value = position.coords.longitude;
+                    
+                    // Update button appearance
+                    shareLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i>';
+                    
+                    // Show confirmation
+                    alert('Konum paylaşmaya hazır. Mesajı göndermek için Gönder butonuna tıklayın.');
+                },
+                function(error) {
+                    shareLocationBtn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+                    shareLocationBtn.style.color = '';
+                    alert('Konum alınamadı. Lütfen konum iznini kontrol edin.');
+                }
+            );
+        } else {
+            alert('Tarayıcınız konum paylaşımını desteklemiyor.');
+        }
+    });
+    
+    // File attachment preview
+    const fileInput = document.getElementById('attachment');
+    
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            // Show file name somewhere
+            const fileName = file.name;
+            alert('Dosya eklendi: ' + fileName);
+        }
+    });
+});
+</script>
+{% endblock %}
