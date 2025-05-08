@@ -8,12 +8,12 @@
         background-color: #f8f9fa !important;
         color: #212529 !important;
     }
-    
+
     .page-container {
         max-width: 1200px;
         margin: 0 auto;
     }
-    
+
     .card {
         background-color: #ffffff !important;
         border: none !important;
@@ -21,7 +21,7 @@
         box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
         margin-bottom: 20px;
     }
-    
+
     .card-header {
         background-color: #f8f9fa !important;
         border-bottom: 1px solid #e9ecef !important;
@@ -29,11 +29,11 @@
         color: #212529 !important;
         padding: 15px 20px;
     }
-    
+
     .card-body {
         padding: 20px;
     }
-    
+
     .form-control, .form-select {
         background-color: #fff !important;
         border: 1px solid #ced4da !important;
@@ -41,28 +41,28 @@
         border-radius: 6px !important;
         padding: 10px 12px !important;
     }
-    
+
     .form-label {
         font-weight: 500;
         margin-bottom: 6px;
         color: #495057;
     }
-    
+
     .required-label::after {
         content: " *";
         color: #dc3545;
     }
-    
+
     .btn-primary {
         background-color: #0077b6 !important;
         border-color: #0077b6 !important;
     }
-    
+
     .btn-outline-secondary {
         color: #6c757d !important;
         border-color: #ced4da !important;
     }
-    
+
     .location-btn {
         background-color: #6c757d;
         color: white;
@@ -74,56 +74,56 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    
+
     .location-btn:hover {
         background-color: #5a6268;
     }
-    
+
     .form-row {
         margin-left: -10px;
         margin-right: -10px;
         display: flex;
         flex-wrap: wrap;
     }
-    
+
     .form-group {
         padding-left: 10px;
         padding-right: 10px;
         margin-bottom: 1rem;
         flex: 1;
     }
-    
+
     .date-input {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' class='bi bi-calendar' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 10px center;
         padding-right: 30px !important;
     }
-    
+
     .action-buttons {
         margin-top: 10px;
         display: flex;
         gap: 10px;
     }
-    
+
     .action-buttons .btn {
         flex: 1;
         padding: 10px;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
         .form-row {
             flex-direction: column;
         }
     }
-    
+
     /* Data table styles */
     .data-table {
         width: 100%;
         border-collapse: collapse;
     }
-    
+
     .data-table th {
         background-color: #f8f9fa;
         color: #495057;
@@ -132,17 +132,17 @@
         padding: 12px 15px;
         border-bottom: 1px solid #e9ecef;
     }
-    
+
     .data-table td {
         padding: 12px 15px;
         border-bottom: 1px solid #e9ecef;
         color: #212529;
     }
-    
+
     .data-table tr:hover {
         background-color: #f8f9fa;
     }
-    
+
     .filter-row {
         margin-bottom: 20px;
         padding: 15px;
@@ -150,13 +150,13 @@
         border-radius: 10px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    
+
     .filter-title {
         font-weight: 600;
         margin-bottom: 15px;
         color: #495057;
     }
-    
+
     .search-btn {
         background-color: #dc3545;
         color: white;
@@ -166,16 +166,16 @@
         cursor: pointer;
         font-weight: 500;
     }
-    
+
     .search-btn:hover {
         background-color: #c82333;
     }
-    
+
     /* Tooltips */
     [data-toggle="tooltip"] {
         position: relative;
     }
-    
+
     [data-toggle="tooltip"]:hover::after {
         content: attr(data-title);
         position: absolute;
@@ -214,7 +214,7 @@
                 {{ form.hidden_tag() }}
                 {{ form.location_x }}
                 {{ form.location_y }}
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="date" class="form-label required-label">Tarih</label>
@@ -225,14 +225,14 @@
                         {{ form.chassis_number(class="form-control", placeholder="Şasi Numarası") }}
                     </div>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="model" class="form-label required-label">Model</label>
                         <select class="form-select" id="model" name="model">
                             <option value="">Model Seçiniz</option>
                             {% for model in models %}
-                                <option value="{{ model.id }}">{{ model.name }}</option>
+                                <option value="{{ model.id }}">{{ model.model }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -246,7 +246,7 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="group" class="form-label required-label">Grup Seçiniz</label>
@@ -263,7 +263,7 @@
                         {{ form.damage_type_id(class="form-select") }}
                     </div>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="severity" class="form-label required-label">{{ form.severity.label.text }}</label>
@@ -274,24 +274,24 @@
                         {{ form.status(class="form-select") }}
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="description" class="form-label">{{ form.description.label.text }} (Opsiyonel)</label>
                     {{ form.description(class="form-control", placeholder="Açıklama", rows=3) }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="notes" class="form-label">Notlar (Opsiyonel)</label>
                     <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Kayıt için notlar"></textarea>
                 </div>
-                
+
                 <div class="form-group">
                     <label class="form-label">Hasar Yeri</label>
                     <button type="button" class="location-btn" id="selectLocationBtn" data-toggle="tooltip" data-title="Araç üzerinde hasar yerini işaretlemek için tıklayın">
                         Yer Seç <i class="bi bi-geo-alt ms-1"></i>
                     </button>
                 </div>
-                
+
                 <div class="action-buttons">
                     <button type="submit" class="btn btn-primary" data-toggle="tooltip" data-title="Hasar kaydını veritabanında sakla">
                         <i class="bi bi-save me-1"></i> Kaydet
@@ -306,7 +306,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Data Table -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -330,8 +330,8 @@
                     <div class="form-group">
                         <select class="form-select" id="searchModel">
                             <option value="">Tümü</option>
-                            {% for model in models %}
-                                <option value="{{ model.id }}">{{ model.name }}</option>
+                            {% for model in vehicle_models %}
+                                <option value="{{ model.id }}">{{ model.model }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -350,7 +350,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
@@ -443,40 +443,40 @@
         const today = new Date();
         const formattedDate = today.toISOString().substr(0, 10);
         document.getElementById('date').value = formattedDate;
-        
+
         // Location modal handling
         const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
         const selectLocationBtn = document.getElementById('selectLocationBtn');
         const saveLocationBtn = document.getElementById('saveLocationBtn');
         const locationXInput = document.getElementById('location_x');
         const locationYInput = document.getElementById('location_y');
-        
+
         selectLocationBtn.addEventListener('click', function() {
             locationModal.show();
         });
-        
+
         saveLocationBtn.addEventListener('click', function() {
             selectLocationBtn.innerHTML = 'Yer Seçildi <i class="bi bi-check-circle-fill ms-1 text-success"></i>';
             locationModal.hide();
         });
-        
+
         // Car damage marking functionality
         let markers = [];
         let markerCount = 0;
         const markerContainer = document.getElementById('markerContainer');
         const carImage = document.querySelector('.car-image');
-        
+
         // If coordinates are already set (edit mode), load them
         if (locationXInput.value && locationYInput.value) {
             try {
                 const xCoords = JSON.parse(locationXInput.value);
                 const yCoords = JSON.parse(locationYInput.value);
-                
+
                 if (Array.isArray(xCoords) && Array.isArray(yCoords) && xCoords.length === yCoords.length) {
                     for (let i = 0; i < xCoords.length; i++) {
                         addMarker(xCoords[i], yCoords[i]);
                     }
-                    
+
                     if (xCoords.length > 0) {
                         selectLocationBtn.innerHTML = 'Yer Seçildi <i class="bi bi-check-circle-fill ms-1 text-success"></i>';
                     }
@@ -485,21 +485,21 @@
                 console.error('Error parsing coordinates:', e);
             }
         }
-        
+
         carImage.addEventListener('click', function(e) {
             const rect = this.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
+
             // Clear existing markers before adding a new one
             clearMarkers();
             addMarker(x, y);
             updateCoordinates();
         });
-        
+
         function addMarker(x, y) {
             markerCount++;
-            
+
             const marker = document.createElement('div');
             marker.className = 'marker';
             marker.style.left = `${x}%`;
@@ -515,17 +515,17 @@
             marker.style.boxShadow = '0 0 4px rgba(0,0,0,0.3)';
             marker.style.zIndex = '10';
             marker.style.cursor = 'pointer';
-            
+
             markerContainer.appendChild(marker);
-            
+
             markers.push({ element: marker, x: x, y: y, index: markerCount });
-            
+
             marker.addEventListener('click', function(e) {
                 e.stopPropagation();
                 removeMarker(this.getAttribute('data-index'));
             });
         }
-        
+
         function removeMarker(index) {
             const markerToRemove = markers.find(m => m.index == index);
             if (markerToRemove) {
@@ -534,29 +534,29 @@
                 updateCoordinates();
             }
         }
-        
+
         function clearMarkers() {
             markers.forEach(marker => {
                 marker.element.remove();
             });
             markers = [];
         }
-        
+
         function updateCoordinates() {
             const xCoords = markers.map(m => m.x);
             const yCoords = markers.map(m => m.y);
-            
+
             locationXInput.value = JSON.stringify(xCoords);
             locationYInput.value = JSON.stringify(yCoords);
         }
-        
+
         // Additional interactive functionality
         const chassisInput = document.getElementById('chassis_number');
         chassisInput.addEventListener('change', function() {
             // In a real application, you would fetch vehicle data here
             console.log('Fetching data for chassis:', this.value);
         });
-        
+
         // Search functionality
         const searchBtn = document.getElementById('searchBtn');
         searchBtn.addEventListener('click', function() {
@@ -564,11 +564,11 @@
             document.getElementById('searchModel').value = '';
             document.getElementById('searchDriver').value = '';
         });
-        
+
         // Select all checkboxes
         const selectAllCheckbox = document.getElementById('selectAll');
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-        
+
         selectAllCheckbox.addEventListener('change', function() {
             rowCheckboxes.forEach(checkbox => {
                 checkbox.checked = selectAllCheckbox.checked;

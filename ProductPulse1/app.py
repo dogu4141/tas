@@ -22,12 +22,18 @@ app.secret_key = os.environ.get("SESSION_SECRET", "tasdanlar-dev-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure database connection
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# Ensure instance folder exists
+os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance'), exist_ok=True)
+
+# Absolute path for SQLite database
+db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'product_pulse.db')
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", f"sqlite:///{db_path}")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["WTF_CSRF_ENABLED"] = True
 
 # Initialize SQLAlchemy with the app
 db.init_app(app)
@@ -41,6 +47,9 @@ login_manager.login_message_category = 'warning'
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
+csrf.init_app(app)
+app.config['WTF_CSRF_TIME_LIMIT'] = None
+app.config['WTF_CSRF_CHECK_DEFAULT'] = False
 
 # Add context processor to make 'now' available in all templates
 # Custom Jinja2 filters
@@ -63,14 +72,25 @@ with app.app_context():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-        
-    # Register chat blueprint
+
+    # Register blueprints
+    from routes.root import root
     from routes.chat_routes import chat
-    app.register_blueprint(chat, url_prefix='/chat')
-    
-    # Register driver blueprint
     from routes.driver import driver
+    from routes.vehicles import vehicles
+    from routes.damages import damages
+    from routes.deliveries import deliveries
+    from routes.loads import loads
+    from routes.auth import auth
+
+    app.register_blueprint(root)
+    app.register_blueprint(auth, url_prefix='/auth')
+    app.register_blueprint(chat, url_prefix='/chat')
     app.register_blueprint(driver, url_prefix='/driver')
+    app.register_blueprint(vehicles, url_prefix='/vehicles')
+    app.register_blueprint(damages, url_prefix='/damages')
+    app.register_blueprint(deliveries, url_prefix='/deliveries')
+    app.register_blueprint(loads, url_prefix='/loads')
 
     # Create all tables if they don't exist
     try:
@@ -78,7 +98,7 @@ with app.app_context():
         # Create default users if no users exist
         if not User.query.first():
             from werkzeug.security import generate_password_hash
-            
+
             # Create admin user
             admin = User(
                 username='admin',
@@ -90,7 +110,7 @@ with app.app_context():
                 is_active=True
             )
             db.session.add(admin)
-            
+
             # Create moderator user
             moderator = User(
                 username='moderator1',
@@ -102,7 +122,7 @@ with app.app_context():
                 is_active=True
             )
             db.session.add(moderator)
-            
+
             # Create driver user
             driver = User(
                 username='driver1',
@@ -115,7 +135,7 @@ with app.app_context():
                 is_active=True
             )
             db.session.add(driver)
-            
+
             db.session.commit()
             logging.info("Created default users (admin, moderator, driver)")
     except Exception as e:

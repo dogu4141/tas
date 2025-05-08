@@ -377,5 +377,4 @@ def delete_load(load_id):
     flash('Yük başarıyla silindi.', 'success')
     return redirect(url_for('loads.index'))
 
-# Register blueprint
-app.register_blueprint(loads, url_prefix='/loads')
+# Blueprint is registered in app.py

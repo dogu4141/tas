@@ -370,5 +370,4 @@ def print_delivery(delivery_id):
     
     return render_template('deliveries/print.html', delivery=delivery, now=datetime.now())
 
-# Register blueprint
-app.register_blueprint(deliveries, url_prefix='/deliveries')
+# Blueprint is registered in app.py

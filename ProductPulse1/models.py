@@ -76,6 +76,8 @@ class Vehicle(db.Model):
     license_plate = db.Column(db.String(20))
     year = db.Column(db.Integer)
     status = db.Column(db.String(20), default='active')  # active, inactive, maintenance
+    created_date = db.Column(db.Date, default=datetime.utcnow().date())
+    created_time = db.Column(db.Time, default=datetime.utcnow().time())
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -459,12 +461,12 @@ class VehicleCatalog(db.Model):
     __tablename__ = 'vehicle_catalog'
     
     id = db.Column(db.Integer, primary_key=True)
-    brand = db.Column(db.String(100), nullable=False)
-    model = db.Column(db.String(100), nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    tonnage = db.Column(db.Float)  # Tonaj
-    image_url = db.Column(db.String(255))
-    description = db.Column(db.Text)
+    brand = db.Column(db.String(100), nullable=False, default='IVECO')
+    model = db.Column(db.String(100), nullable=False, unique=True)
+    year = db.Column(db.Integer, nullable=False, default=datetime.utcnow().year)
+    tonnage = db.Column(db.Float, nullable=True)  # Tonaj
+    image_url = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

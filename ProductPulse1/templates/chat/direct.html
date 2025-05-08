@@ -56,7 +56,7 @@
         border-radius: 50%;
         transition: background-color 0.2s;
     }
-    
+
     .whatsapp-header-return:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
@@ -219,7 +219,7 @@
         margin-right: 8px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
-    
+
     .wa-action-button {
         width: 40px;
         height: 40px;
@@ -232,7 +232,7 @@
         cursor: pointer;
         background: transparent;
     }
-    
+
     .wa-action-button:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
@@ -297,7 +297,7 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    
+
     .wa-send-button:hover {
         background-color: #028e70;
     }
@@ -344,7 +344,7 @@
         transition: all 0.2s;
         gap: 6px;
     }
-    
+
     .wa-load-more a:hover {
         background-color: #f5f5f5;
     }
@@ -367,14 +367,14 @@
         margin-bottom: 20px;
         color: #d1d7db;
     }
-    
+
     .wa-no-messages p {
         max-width: 300px;
         margin: 0 auto 10px;
         font-size: 14px;
         line-height: 20px;
     }
-    
+
     .wa-no-messages p:first-of-type {
         font-weight: 500;
         font-size: 16px;
@@ -411,7 +411,7 @@
             height: calc(100vh - 100px);
             border-radius: 0;
         }
-        
+
         .wa-message {
             max-width: 80%;
         }
@@ -457,7 +457,7 @@
             <i class="bi bi-three-dots-vertical"></i>
         </div>
     </div>
-    
+
     <div class="wa-messages-container">
         {% if messages.items %}
             {% if messages.has_prev %}
@@ -467,12 +467,12 @@
                     </a>
                 </div>
             {% endif %}
-            
+
             {% for message in messages.items %}
                 <div class="wa-message {% if message.sender_id == current_user.id %}wa-message-outgoing{% else %}wa-message-incoming{% endif %}">
                     <div class="wa-message-content">
                         <p class="wa-message-text">{{ message.content|nl2br }}</p>
-                        
+
                         {% if message.has_attachment and message.attachments %}
                             {% for attachment in message.attachments %}
                                 <div class="wa-attachment">
@@ -487,12 +487,12 @@
                                 </div>
                             {% endfor %}
                         {% endif %}
-                        
+
                         {% if message.location_lat and message.location_lng %}
                             <div class="wa-location-map" data-lat="{{ message.location_lat }}" data-lng="{{ message.location_lng }}"></div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="wa-message-meta">
                         <span class="wa-message-timestamp">{{ message.sent_at.strftime('%H:%M') }}</span>
                         {% if message.sender_id == current_user.id %}
@@ -507,7 +507,7 @@
                     </div>
                 </div>
             {% endfor %}
-            
+
         {% else %}
             <div class="wa-no-messages">
                 <i class="bi bi-chat-dots"></i>
@@ -516,33 +516,33 @@
             </div>
         {% endif %}
     </div>
-    
+
     <form action="{{ url_for('chat.send_message') }}" method="post" enctype="multipart/form-data" id="messageForm">
         <input type="hidden" name="receiver_id" value="{{ other_user.id }}">
         {{ form.csrf_token if form and form.csrf_token }}
-        
+
         <!-- For location sharing -->
         <input type="hidden" name="location_lat" id="location_lat">
         <input type="hidden" name="location_lng" id="location_lng">
-        
+
         <div class="wa-input-container">
             <div class="wa-input-wrapper">
                 <div class="wa-input-emoji">
                     <i class="bi bi-emoji-smile"></i>
                 </div>
-                
+
                 <div class="wa-input-attach">
                     <i class="bi bi-paperclip"></i>
                     <input type="file" name="attachment" id="attachment">
                 </div>
-                
+
                 <div class="wa-location-share" id="shareLocationBtn">
                     <i class="bi bi-geo-alt"></i>
                 </div>
-                
+
                 <textarea name="content" id="content" class="wa-textarea" placeholder="Mesaj yazın" required></textarea>
             </div>
-            
+
             <button type="submit" class="wa-send-button" id="sendButton">
                 <i class="bi bi-send"></i>
             </button>
@@ -558,53 +558,53 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-scroll to bottom of messages
     const messagesContainer = document.querySelector('.wa-messages-container');
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
+
     // Resize textarea as content grows
     const textarea = document.getElementById('content');
     const sendButton = document.getElementById('sendButton');
-    
+
     textarea.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-        
+
         // Enable/disable send button
         sendButton.disabled = this.value.trim().length === 0;
     });
-    
+
     // Initialize leaflet maps for location messages
     const locationMaps = document.querySelectorAll('.wa-location-map');
     locationMaps.forEach(mapElement => {
         const lat = parseFloat(mapElement.dataset.lat);
         const lng = parseFloat(mapElement.dataset.lng);
-        
+
         if (lat && lng) {
             const map = L.map(mapElement).setView([lat, lng], 13);
-            
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
-            
+
             L.marker([lat, lng]).addTo(map);
         }
     });
-    
+
     // Location sharing
     const shareLocationBtn = document.getElementById('shareLocationBtn');
-    
+
     shareLocationBtn.addEventListener('click', function() {
         if (navigator.geolocation) {
             shareLocationBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
             shareLocationBtn.style.color = '#25D366';
-            
+
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     // Set location in hidden inputs
                     document.getElementById('location_lat').value = position.coords.latitude;
                     document.getElementById('location_lng').value = position.coords.longitude;
-                    
+
                     // Update button appearance
                     shareLocationBtn.innerHTML = '<i class="bi bi-geo-alt-fill"></i>';
-                    
+
                     // Show confirmation
                     alert('Konum paylaşmaya hazır. Mesajı göndermek için Gönder butonuna tıklayın.');
                 },
@@ -618,10 +618,10 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Tarayıcınız konum paylaşımını desteklemiyor.');
         }
     });
-    
+
     // File attachment preview
     const fileInput = document.getElementById('attachment');
-    
+
     fileInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {

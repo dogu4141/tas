@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
 from flask_login import login_required, current_user
-from app import db, app
-from models import Vehicle, VehicleEntry, VehicleExit, User, ActivityLog
+from app import db, app, csrf
+from models import Vehicle, VehicleEntry, VehicleExit, User, ActivityLog, VehicleCatalog
+from sqlalchemy import distinct
 from forms import VehicleForm, VehicleEntryForm, VehicleExitForm
 from datetime import datetime
 from sqlalchemy import func
@@ -36,7 +37,8 @@ def index():
     page = request.args.get('page', 1, type=int)
     vehicles_list = query.order_by(Vehicle.updated_at.desc()).paginate(page=page, per_page=10)
     
-    return render_template('vehicles/index.html', vehicles=vehicles_list, search=search, status=status)
+    vehicle_models = VehicleCatalog.query.order_by(VehicleCatalog.model).all()
+    return render_template('vehicles/index.html', vehicles=vehicles_list, search=search, status=status, vehicle_models=vehicle_models)
 
 @vehicles.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -45,31 +47,52 @@ def add_vehicle():
     form = VehicleForm()
     
     if form.validate_on_submit():
-        vehicle = Vehicle(
-            chassis_number=form.chassis_number.data,
-            brand=form.brand.data,
-            model=form.model.data,
-            license_plate=form.license_plate.data,
-            year=form.year.data,
-            status=form.status.data
-        )
-        
-        db.session.add(vehicle)
-        
-        # Log activity
-        log = ActivityLog(
-            user_id=current_user.id,
-            action="vehicle_create",
-            entity_type="vehicle",
-            entity_id=vehicle.id,
-            details=f"Araç oluşturuldu: {vehicle.chassis_number}",
-            ip_address=request.remote_addr
-        )
-        db.session.add(log)
-        
-        db.session.commit()
-        flash('Araç başarıyla eklendi.', 'success')
-        return redirect(url_for('vehicles.index'))
+        try:
+            # Check if vehicle already exists
+            existing_vehicle = Vehicle.query.filter_by(chassis_number=form.chassis_number.data).first()
+            if existing_vehicle:
+                flash('Bu şasi numarasına sahip araç zaten mevcut.', 'danger')
+                return render_template('vehicles/index.html', form=form)
+
+            now = datetime.utcnow()
+            vehicle = Vehicle(
+                chassis_number=form.chassis_number.data,
+                brand="IVECO",
+                model=form.model.data,
+                year=now.year,
+                status='active',  # Set default status
+                created_date=now.date(),
+                created_time=now.time()
+            )
+            
+            db.session.add(vehicle)
+            db.session.flush()
+            
+            # Log activity
+            log = ActivityLog(
+                user_id=current_user.id,
+                action="vehicle_create",
+                entity_type="vehicle",
+                entity_id=vehicle.id,
+                details=f"Araç oluşturuldu: {vehicle.chassis_number}",
+                ip_address=request.remote_addr
+            )
+            db.session.add(log)
+            
+            db.session.commit()
+            flash('Araç başarıyla eklendi.', 'success')
+            return redirect(url_for('vehicles.index'))
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Vehicle addition error: {str(e)}")
+            flash('Araç eklenirken bir hata oluştu. Lütfen tekrar deneyin.', 'danger')
+            return render_template('vehicles/index.html', form=form)
+    
+    if form.errors:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'danger')
     
     return render_template('vehicles/index.html', form=form)
 
@@ -85,11 +108,7 @@ def edit_vehicle(vehicle_id):
     
     if form.validate_on_submit():
         vehicle.chassis_number = form.chassis_number.data
-        vehicle.brand = form.brand.data
         vehicle.model = form.model.data
-        vehicle.license_plate = form.license_plate.data
-        vehicle.year = form.year.data
-        vehicle.status = form.status.data
         
         # Log activity
         log = ActivityLog(
@@ -222,6 +241,33 @@ def vehicle_info():
         }
     })
 
+@vehicles.route('/delete/<int:vehicle_id>', methods=['POST'])
+@login_required
+@moderator_required
+def delete_vehicle(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    
+    try:
+        # Log activity
+        log = ActivityLog(
+            user_id=current_user.id,
+            action="vehicle_delete",
+            entity_type="vehicle",
+            entity_id=vehicle.id,
+            details=f"Araç silindi: {vehicle.chassis_number}",
+            ip_address=request.remote_addr
+        )
+        db.session.add(log)
+        
+        db.session.delete(vehicle)
+        db.session.commit()
+        
+        flash('Araç başarıyla silindi.', 'success')
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @vehicles.route('/view/<int:vehicle_id>')
 @login_required
 def view_vehicle(vehicle_id):
@@ -234,4 +280,46 @@ def view_vehicle(vehicle_id):
     return render_template('vehicles/view.html', vehicle=vehicle, entries=entries, exits=exits)
 
 # Register blueprint
-app.register_blueprint(vehicles, url_prefix='/vehicles')
+@vehicles.route('/api/add-model', methods=['POST'])
+@login_required
+@moderator_required
+def add_model():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Geçersiz veri formatı!'})
+            
+        model_name = data.get('model_name', '').strip()
+        if not model_name:
+            return jsonify({'success': False, 'message': 'Model adı boş olamaz!'})
+        
+        # Check if model already exists
+        vehicle_catalog = VehicleCatalog.query.filter_by(model=model_name).first()
+        if vehicle_catalog:
+            return jsonify({'success': False, 'message': 'Bu model zaten mevcut!'})
+        
+        try:
+            # Add new model with default values
+            new_model = VehicleCatalog(
+                brand='IVECO',  # Default marka
+                model=model_name,
+                year=datetime.utcnow().year  # Varsayılan olarak bu yıl
+            )
+            db.session.add(new_model)
+            db.session.commit()
+            
+            print(f"Model başarıyla eklendi: {model_name}")  # Debug log
+            
+            return jsonify({
+                'success': True,
+                'message': 'Model başarıyla eklendi!',
+                'model': model_name
+            })
+        except Exception as e:
+            db.session.rollback()
+            print(f"Model ekleme hatası: {str(e)}")
+            return jsonify({'success': False, 'message': 'Model eklenirken bir hata oluştu!'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Model ekleme hatası: {str(e)}")
+        return jsonify({'success': False, 'message': 'Model eklenirken bir hata oluştu!'})

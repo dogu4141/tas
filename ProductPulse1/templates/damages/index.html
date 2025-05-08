@@ -87,12 +87,11 @@
                     {% if damages.items %}
                         {% for damage in damages.items %}
                             <tr>
+                                <td>{{ damage.recorded_at.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>{{ damage.id }}</td>
                                 <td>
-                                    <a href="{{ url_for('vehicles.view_vehicle', vehicle_id=damage.vehicle.id) }}" class="link-secondary">
-                                        {{ damage.vehicle.brand }} {{ damage.vehicle.model }}<br>
-                                        <small class="text-muted">{{ damage.vehicle.chassis_number }}</small>
-                                    </a>
+                                    {{ damage.vehicle.brand }} {{ damage.vehicle.model }}<br>
+                                    <small class="text-muted">{{ damage.vehicle.chassis_number }}</small>
                                 </td>
                                 <td>{{ damage.damage_type.name }}</td>
                                 <td>
@@ -114,16 +113,21 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ damage.recorder.username if damage.recorder else "-" }}</td>
-                                <td>{{ damage.recorded_at.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>
-                                    <a href="{{ url_for('damages.view_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <a href="{{ url_for('damages.view_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-secondary" title="Görüntüle">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     {% if current_user.role in ['admin', 'moderator'] %}
-                                    <a href="{{ url_for('damages.edit_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ url_for('damages.edit_damage', damage_id=damage.id) }}" class="btn btn-sm btn-outline-primary" title="Düzenle">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+                                    <a href="#" onclick="confirmDelete({{ damage.id }})" class="btn btn-sm btn-outline-danger" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
                                     {% endif %}
+                                    <a href="{{ url_for('damages.record_damage') }}" class="btn btn-sm btn-outline-success" title="Hasar Kaydı Ekle">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </a>
                                 </td>
                             </tr>
                         {% endfor %}

@@ -18,5 +18,4 @@ def index():
         logging.info("User not authenticated, redirecting to auth.login")
         return redirect(url_for('auth.login'))
 
-# Register blueprint
-app.register_blueprint(root, url_prefix='/')
+# Blueprint registration is handled in app.py

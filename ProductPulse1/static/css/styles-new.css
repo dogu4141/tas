@@ -1,27 +1,42 @@
 /* Main Styles */
 :root {
     /* Yeni renk paleti */
-    --primary-color: #6A0572;    /* Koyu mor */
-    --secondary-color: #AB83A1;  /* Açık mor */
-    --accent-color: #F15BB5;     /* Pembe */
-    --success-color: #00C896;    /* Turkuaz yeşil */
-    --warning-color: #FFC857;    /* Amber */
-    --danger-color: #FF5A5F;     /* Mercan kırmızısı */
-    --light-color: #F8F9FA;      /* Açık gri */
-    --dark-color: #2E2E3A;       /* Koyu lacivert */
-    --gray-color: #7E8299;       /* Orta gri */
-    --border-color: #E4E6EF;     /* Açık gri sınır */
-    
+    --primary-color: #6A0572;
+    /* Koyu mor */
+    --secondary-color: #AB83A1;
+    /* Açık mor */
+    --accent-color: #F15BB5;
+    /* Pembe */
+    --success-color: #00C896;
+    /* Turkuaz yeşil */
+    --warning-color: #FFC857;
+    /* Amber */
+    --danger-color: #FF5A5F;
+    /* Mercan kırmızısı */
+    --light-color: #F8F9FA;
+    /* Açık gri */
+    --dark-color: #2E2E3A;
+    /* Koyu lacivert */
+    --gray-color: #7E8299;
+    /* Orta gri */
+    --border-color: #E4E6EF;
+    /* Açık gri sınır */
+
     /* Özel renkler */
-    --bg-color: #F9F7FF;         /* Çok açık mor arkaplan */
-    --card-bg: #FFFFFF;          /* Beyaz kart arkaplanı */
-    --hover-color: #F0F0FF;      /* Hover efekti için açık mor */
-    
+    --bg-color: #F9F7FF;
+    /* Çok açık mor arkaplan */
+    --card-bg: #FFFFFF;
+    /* Beyaz kart arkaplanı */
+    --hover-color: #F0F0FF;
+    /* Hover efekti için açık mor */
+
     /* Boyutlar ve efektler */
     --sidebar-width: 250px;
     --header-height: 60px;
-    --border-radius: 10px;       /* Daha yuvarlak köşeler */
-    --shadow: 0 5px 15px rgba(106, 5, 114, 0.1); /* Mor gölge */
+    --border-radius: 10px;
+    /* Daha yuvarlak köşeler */
+    --shadow: 0 5px 15px rgba(106, 5, 114, 0.1);
+    /* Mor gölge */
 }
 
 /* Tooltip styling improvements */
@@ -64,10 +79,11 @@ body {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(180deg, #1a237e, #283593);
     z-index: 1000;
     overflow-y: auto;
     transition: all 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-sticky {
@@ -83,23 +99,26 @@ body {
 }
 
 .sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
-    padding: 0.6rem 1rem;
-    margin-bottom: 5px;
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 4px;
     border-radius: var(--border-radius);
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
 }
 
-.sidebar .nav-link:hover, 
+.sidebar .nav-link:hover,
 .sidebar .nav-link:focus {
     color: white;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left: 3px solid rgba(255, 255, 255, 0.5);
 }
 
 .sidebar .nav-link.active {
     color: white;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.12);
+    border-left: 3px solid white;
 }
 
 .sidebar .nav-link i {
@@ -124,11 +143,11 @@ body {
     .sidebar {
         transform: translateX(-100%);
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
     }
@@ -157,7 +176,8 @@ body {
 }
 
 /* Forms */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: var(--border-radius);
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--border-color);
@@ -167,21 +187,26 @@ body {
 }
 
 /* Koyu arka planlar için form kontrolleri */
-.bg-dark .form-control, .bg-primary .form-control, .bg-secondary .form-control,
-.bg-dark .form-select, .bg-primary .form-select, .bg-secondary .form-select {
+.bg-dark .form-control,
+.bg-primary .form-control,
+.bg-secondary .form-control,
+.bg-dark .form-select,
+.bg-primary .form-select,
+.bg-secondary .form-select {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
     color: white;
 }
 
 /* Koyu arka planlar üzerindeki placeholder renkleri */
-.bg-dark .form-control::placeholder, 
-.bg-primary .form-control::placeholder, 
+.bg-dark .form-control::placeholder,
+.bg-primary .form-control::placeholder,
 .bg-secondary .form-control::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.25rem rgba(106, 5, 114, 0.15);
 }
@@ -198,15 +223,24 @@ body {
 }
 
 /* Form etiketleri için koyu renk uygula */
-label, .col-form-label, legend, .form-check-label {
+label,
+.col-form-label,
+legend,
+.form-check-label {
     color: var(--dark-color) !important;
     font-weight: 500;
 }
 
 /* Formlar için koyu arka planlar üzerinde beyaz yazı */
-.bg-dark label, .bg-primary label, .bg-secondary label, 
-.bg-dark .form-label, .bg-primary .form-label, .bg-secondary .form-label,
-.bg-dark .col-form-label, .bg-primary .col-form-label, .bg-secondary .col-form-label {
+.bg-dark label,
+.bg-primary label,
+.bg-secondary label,
+.bg-dark .form-label,
+.bg-primary .form-label,
+.bg-secondary .form-label,
+.bg-dark .col-form-label,
+.bg-primary .col-form-label,
+.bg-secondary .col-form-label {
     color: white !important;
 }
 
@@ -309,7 +343,8 @@ textarea.form-control {
 }
 
 .btn-primary:hover {
-    background-color: #59066a; /* Daha koyu mor */
+    background-color: #59066a;
+    /* Daha koyu mor */
     border-color: #59066a;
 }
 
@@ -319,7 +354,8 @@ textarea.form-control {
 }
 
 .btn-success:hover {
-    background-color: #00a57b; /* Daha koyu turkuaz */
+    background-color: #00a57b;
+    /* Daha koyu turkuaz */
     border-color: #00a57b;
 }
 
@@ -342,7 +378,8 @@ textarea.form-control {
 }
 
 .btn-accent:hover {
-    background-color: #d34a9a; /* Daha koyu pembe */
+    background-color: #d34a9a;
+    /* Daha koyu pembe */
     border-color: #d34a9a;
     color: white;
 }
@@ -354,7 +391,8 @@ textarea.form-control {
 }
 
 .table th {
-    background-color: rgba(106, 5, 114, 0.05); /* Çok açık mor arkaplan */
+    background-color: rgba(106, 5, 114, 0.05);
+    /* Çok açık mor arkaplan */
     font-weight: 600;
     border-top: none;
     padding: 0.6rem 0.75rem;
@@ -369,7 +407,8 @@ textarea.form-control {
 }
 
 .table-hover tbody tr:hover {
-    background-color: var(--hover-color); /* Açık mor hover efekti */
+    background-color: var(--hover-color);
+    /* Açık mor hover efekti */
 }
 
 /* Compact tables for system logs */
@@ -381,7 +420,8 @@ textarea.form-control {
     padding: 0.5rem;
     font-size: 0.8rem;
     color: var(--dark-color);
-    background-color: rgba(106, 5, 114, 0.05); /* Mor ton */
+    background-color: rgba(106, 5, 114, 0.05);
+    /* Mor ton */
 }
 
 .table-compact td {
@@ -607,10 +647,13 @@ textarea.form-control {
 }
 
 /* Animation for transitions */
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
     transition: opacity 0.3s;
 }
-.fade-enter, .fade-leave-to {
+
+.fade-enter,
+.fade-leave-to {
     opacity: 0;
 }
 
@@ -619,7 +662,8 @@ textarea.form-control {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 200px);
-    background-color: #F0E6F6; /* Açık mor arkaplan */
+    background-color: #F0E6F6;
+    /* Açık mor arkaplan */
     border-radius: var(--border-radius);
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -679,7 +723,8 @@ textarea.form-control {
 }
 
 .message.sent .message-content {
-    background-color: #00C896; /* WhatsApp yeşili yerine turkuaz renk */
+    background-color: #00C896;
+    /* WhatsApp yeşili yerine turkuaz renk */
     color: white;
     border-bottom-right-radius: 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -732,15 +777,18 @@ textarea.form-control {
 
 /* Print styles */
 @media print {
-    .sidebar, .btn, .form-group {
+
+    .sidebar,
+    .btn,
+    .form-group {
         display: none !important;
     }
-    
+
     .main-content {
         margin-left: 0;
         padding: 0;
     }
-    
+
     .card {
         box-shadow: none;
         border: 1px solid #ddd;

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="tr" data-bs-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>
+            {% block title %}Taşdanlar Otomotiv Yönetim Sistemi{% endblock %}
+        </title>
+        <!-- Favicon -->
+        <link
+            rel="shortcut icon"
+            href="{{ url_for('static', filename='img/favicon.ico') }}"
+            type="image/x-icon"
+        />
+        <!-- Bootstrap CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css"
+        />
+        <!-- Bootstrap Icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        />
+        <!-- Ana CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/styles-new.css') }}"
+        />
+        <!-- Ek CSS dosyaları -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/damage-system.css') }}"
+        />
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body>
+        {% if current_user.is_authenticated %}
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-sticky p-3">
+                <div
+                    class="d-flex align-items-center justify-content-center mb-3"
+                >
+                    <img
+                        src="{{ url_for('static', filename='img/company-logo.svg') }}"
+                        alt="Taşdanlar Otomotiv"
+                        class="img-fluid mb-2"
+                        style="max-width: 180px"
+                    />
+                </div>
+                <hr />
+                <ul class="nav nav-pills flex-column mb-auto">
+                    {% if current_user.role in ['admin', 'moderator'] %}
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('admin.dashboard') }}"
+                            class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+                        >
+                            <i class="bi bi-speedometer2"></i> Gösterge Paneli
+                        </a>
+                    </li>
+                    {% endif %} {% if current_user.role in ['admin',
+                    'moderator'] %}
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('vehicles.index') }}"
+                            class="nav-link {% if request.endpoint.startswith('vehicles.') %}active{% endif %}"
+                        >
+                            <i class="bi bi-truck"></i> Araçlar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('damages.index') }}"
+                            class="nav-link {% if request.endpoint.startswith('damages.') %}active{% endif %}"
+                        >
+                            <i class="bi bi-tools"></i> Hasar Yönetimi
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('deliveries.index') }}"
+                            class="nav-link {% if request.endpoint.startswith('deliveries.') %}active{% endif %}"
+                        >
+                            <i class="bi bi-receipt"></i> İrsaliyeler
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('loads.index') }}"
+                            class="nav-link {% if request.endpoint.startswith('loads.') %}active{% endif %}"
+                        >
+                            <i class="bi bi-box-seam"></i> Yükler
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('chat.index') }}"
+                            class="nav-link {% if request.endpoint.startswith('chat.') %}active{% endif %}"
+                        >
+                            <i class="bi bi-chat-dots"></i> Mesajlar
+                            <span
+                                class="position-absolute translate-middle badge rounded-pill bg-danger"
+                                id="unread-count"
+                                style="display: none"
+                            >
+                                0
+                            </span>
+                        </a>
+                    </li>
+
+                    {% if current_user.role in ['admin', 'moderator'] %}
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('vehicles.vehicle_entry') }}"
+                            class="nav-link {% if request.endpoint == 'vehicles.vehicle_entry' %}active{% endif %}"
+                        >
+                            <i class="bi bi-box-arrow-in-right"></i> Araç Girişi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('vehicles.vehicle_exit') }}"
+                            class="nav-link {% if request.endpoint == 'vehicles.vehicle_exit' %}active{% endif %}"
+                        >
+                            <i class="bi bi-box-arrow-right"></i> Araç Çıkışı
+                        </a>
+                    </li>
+                    {% endif %} {% if current_user.role == 'admin' %}
+                    <li
+                        class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1"
+                    >
+                        <span>Yönetim</span>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('admin.users') }}"
+                            class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
+                        >
+                            <i class="bi bi-people"></i> Kullanıcı Yönetimi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('damages.damage_types') }}"
+                            class="nav-link {% if request.endpoint == 'damages.damage_types' %}active{% endif %}"
+                        >
+                            <i class="bi bi-clipboard-check"></i> Hasar Tipleri
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            href="{{ url_for('admin.activity_logs') }}"
+                            class="nav-link {% if request.endpoint == 'admin.activity_logs' %}active{% endif %}"
+                        >
+                            <i class="bi bi-clock-history"></i> Sistem Kayıtları
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <hr />
+                <div class="dropdown">
+                    <a
+                        href="#"
+                        class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                        id="dropdownUser1"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        <i class="bi bi-person-circle me-2"></i>
+                        <strong>{{ current_user.username }}</strong>
+                    </a>
+                    <ul
+                        class="dropdown-menu dropdown-menu-dark text-small shadow"
+                        aria-labelledby="dropdownUser1"
+                    >
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('auth.profile') }}"
+                                >Profil</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('auth.change_password') }}"
+                                >Şifre Değiştir</a
+                            >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('auth.logout') }}"
+                                >Çıkış</a
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button
+                    type="button"
+                    id="sidebarToggleBtn"
+                    class="btn btn-sm btn-outline-secondary d-md-none"
+                >
+                    <i class="bi bi-list"></i>
+                </button>
+                <h2 class="mb-0">
+                    {% block page_title %}Mesajlaşma{% endblock %}
+                </h2>
+                <div class="d-flex">{% block page_actions %}{% endblock %}</div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %} {%
+            if messages %} {% for category, message in messages %}
+            <div
+                class="alert alert-{{ category }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ message }}
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"
+                ></button>
+            </div>
+            {% endfor %} {% endif %} {% endwith %}
+
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </main>
+        {% else %}
+        <div class="content-wrapper">
+            {% block auth_content %}{% endblock %}
+        </div>
+        {% endif %}
+
+        <!-- Bootstrap JS Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+        <!-- Main JS -->
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/damage-system.js') }}"></script>
+
+        <!-- Chat notification checker -->
+        {% if current_user.is_authenticated %}
+        <script>
+            // Check for unread messages periodically
+            function checkUnreadMessages() {
+                fetch("/chat/unread-count")
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const unreadBadge =
+                            document.getElementById("unread-count");
+                        if (data.count > 0) {
+                            unreadBadge.textContent = data.count;
+                            unreadBadge.style.display = "inline-block";
+                        } else {
+                            unreadBadge.style.display = "none";
+                        }
+                    })
+                    .catch((error) =>
+                        console.error("Error checking unread messages:", error),
+                    );
+            }
+
+            // Check immediately and then every minute
+            document.addEventListener("DOMContentLoaded", function () {
+                checkUnreadMessages();
+                setInterval(checkUnreadMessages, 60000);
+            });
+        </script>
+        {% endif %}
+
+        <!-- Specific page scripts -->
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

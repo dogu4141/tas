@@ -1,3 +1,22 @@
+
+function confirmDelete(damageId) {
+    if (confirm('Bu hasar kaydını silmek istediğinize emin misiniz?')) {
+        fetch(`/damages/delete/${damageId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Silme işlemi başarısız oldu.');
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const locationSelectBtn = document.getElementById('locationSelectBtn');
     const saveLocationBtn = document.getElementById('saveLocationBtn');

@@ -1,4 +1,87 @@
+function deleteVehicle(vehicleId) {
+    if (confirm('Bu aracı silmek istediğinize emin misiniz?')) {
+        fetch(`/vehicles/delete/${vehicleId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Silme işlemi başarısız oldu.');
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Model modal elements
+    const addModelBtn = document.getElementById('addModelBtn');
+    const modelAddModal = document.getElementById('modelAddModal');
+    const closeModelBtn = document.getElementById('closeModelModal');
+    const saveModelBtn = document.getElementById('saveModelBtn');
+    const modelNameInput = document.getElementById('modelName');
+    
+    // Initialize modal
+    const modelModal = new bootstrap.Modal(modelAddModal, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
+    // Show modal
+    if (addModelBtn) {
+        addModelBtn.addEventListener('click', () => {
+            modelNameInput.value = '';
+            modelModal.show();
+        });
+    }
+    
+    // Close modal
+    if (closeModelBtn) {
+        closeModelBtn.addEventListener('click', () => {
+            modelModal.hide();
+        });
+    }
+    
+    // Save model
+    if (saveModelBtn) {
+        saveModelBtn.addEventListener('click', async () => {
+            const modelName = modelNameInput.value.trim();
+            
+            if (!modelName) {
+                alert('Model adı boş olamaz!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/vehicles/api/add-model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ model_name: modelName })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Refresh model dropdown
+                    const modelSelect = document.getElementById('model');
+                    if (modelSelect) {
+                        const option = new Option(modelName, modelName);
+                        modelSelect.add(option);
+                    }
+                    alert('Model başarıyla eklendi!');
+                } else {
+                    alert(data.message || 'Model eklenirken bir hata oluştu!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Model eklenirken bir hata oluştu!');
+            }
+        });
+    }
     // Vehicle search by chassis number
     const chassisSearchInput = document.getElementById('chassisSearch');
     const chassisSearchForm = document.getElementById('chassisSearchForm');

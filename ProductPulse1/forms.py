@@ -38,12 +38,12 @@ class UserForm(FlaskForm):
     license_plate = StringField('Plaka', validators=[Optional(), Length(max=20)])
     is_active = BooleanField('Aktif')
     submit = SubmitField('Kaydet')
-    
+
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user and user.id != getattr(self, 'user_id', None):
             raise ValidationError('Bu kullanıcı adı zaten kullanılıyor. Lütfen başka bir kullanıcı adı seçin.')
-    
+
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user and user.id != getattr(self, 'user_id', None):
@@ -65,17 +65,16 @@ class ProfileForm(FlaskForm):
 
 class VehicleForm(FlaskForm):
     chassis_number = StringField('Şasi No', validators=[DataRequired(), Length(max=20)])
-    brand = StringField('Marka', validators=[DataRequired(), Length(max=50)])
-    model = StringField('Model', validators=[DataRequired(), Length(max=50)])
-    license_plate = StringField('Plaka', validators=[Optional(), Length(max=20)])
-    year = IntegerField('Yıl', validators=[Optional()])
-    status = SelectField('Durum', choices=[
-        ('active', 'Aktif'),
-        ('inactive', 'Pasif'),
-        ('maintenance', 'Bakımda')
-    ])
+    model = SelectField('Model', validators=[DataRequired()], choices=[])
     submit = SubmitField('Kaydet')
-    
+
+    def __init__(self, *args, **kwargs):
+        super(VehicleForm, self).__init__(*args, **kwargs)
+        # VehicleCatalog'dan modelleri al
+        from models import VehicleCatalog
+        models = VehicleCatalog.query.all()
+        self.model.choices = [('', 'Model Seçiniz')] + [(m.model, m.model) for m in models]
+
     def validate_chassis_number(self, chassis_number):
         vehicle = Vehicle.query.filter_by(chassis_number=chassis_number.data).first()
         if vehicle and vehicle.id != getattr(self, 'vehicle_id', None):
@@ -103,6 +102,7 @@ class DamageTypeForm(FlaskForm):
 class DamageForm(FlaskForm):
     vehicle_id = SelectField('Araç', coerce=int)
     chassis_number = StringField('Şasi No', validators=[DataRequired(), Length(max=20)])
+    model = StringField('Model')
     damage_type_id = SelectField('Hasar Tipi', coerce=int)
     description = TextAreaField('Açıklama', validators=[DataRequired()])
     location_x = HiddenField('Konum X')

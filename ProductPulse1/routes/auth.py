@@ -138,5 +138,4 @@ def change_password():
     
     return render_template('profile.html', password_form=form)
 
-# Register blueprint
-app.register_blueprint(auth, url_prefix='/auth')
+# Blueprint registration is handled in app.py
